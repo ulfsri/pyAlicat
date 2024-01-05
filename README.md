@@ -15,6 +15,8 @@
 
 Python API for acquisition and control of Alicat mass flow meters and controllers.
 
+See [Alicat Serial Communications Guide](https://www.alicat.com/wp-content/documents/Alicat-Serial-Primer.pdf) for reference
+
 </div>
 
 ## Very first steps
