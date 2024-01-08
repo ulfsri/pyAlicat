@@ -2,7 +2,7 @@
 
 import pytest
 
-from pyAlicat.example import hello
+from pyalicat.example import hello
 
 
 @pytest.mark.parametrize(
