@@ -1,10 +1,11 @@
-import trio
-from trio import run
-from comm import CommDevice, SerialDevice
 from typing import Any, Union
-from abc import ABC
-import re
 
+import re
+from abc import ABC
+
+import trio
+from comm import CommDevice, SerialDevice
+from trio import run
 
 statistics = {
     "Mass Flow": 5,
