@@ -73,6 +73,7 @@ class DAQ:
 
         pass
 
+
 class DAQLogging:
     """
     Class for logging the data from Alicat devices. Creates and saves file to disk with given acquisition rate. Only used for standalone logging. Use external API for use as plugin.
