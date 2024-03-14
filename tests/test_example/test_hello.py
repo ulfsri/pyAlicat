@@ -1,6 +1,6 @@
 # """Tests for hello function."""
 
-# import pytest
+import pytest
 
 # from pyalicat.example import hello
 
@@ -22,3 +22,5 @@
 # def test_hello(name, expected):
 #     """Example test with parametrization."""
 #     assert hello(name) == expected
+
+assert True
