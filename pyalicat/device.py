@@ -8,104 +8,103 @@ from comm import CommDevice, SerialDevice
 from trio import run
 
 statistics = {
-    "Batch mass remain.": 12,
-    "Batch vol remain.": 11,
-    "Batch vol ext remain.": 19,
-    "Mass Flow": 5,
-    "Mass Flow avg": 69,
-    "Mass Flow max": 175,
-    "Mass Flow min": 174,
-    "Mass Flow Peak": 101,
-    "Mass Flow Setpt": 37,
-    "Mass Flow Setpt err": 173,
-    "Totalizing Time": 10,
-    "Tot Mass": 9,
-    "Tot Vol": 8,
-    "Tot Vol Ext": 18,
-    "Volu Flow": 4,
-    "Volu Flow avg": 68,
-    "Volu Flow max": 167,
-    "Volu Flow min": 166,
-    "Volu Flow Peak": 100,
-    "Volu Flow Setpt": 36,
-    "Volu Flow Setpt err": 165,
-    "Vol Flow Ext": 17,
-    "Vol Flow Ext avg": 81,
-    "Vol Flow Ext max": 271,
-    "Vol Flow Ext min": 270,
-    "Vol Flow Ext Peak": 113,
-    "Vol Flow Ext Setpt": 49,
-    "Vol Flow Ext Setpt err": 268,
-    "Abs Press": 2,
-    "Abs Press avg": 66,
-    "Abs Press max": 151,
-    "Abs Press min": 150,
-    "Abs Press Peak": 98,
-    "Abs Press Setpt": 34,
-    "Abs Press Setpt err": 149,
-    "Baro Press": 15,
-    "Baro Press Avg": 79,
-    "Baro Press Max": 255,
-    "Baro Press Min": 254,
-    "Baro Press Peak": 111,
-    "Diff Press": 7,
-    "Diff Press max": 191,
-    "Diff Press min": 190,
-    "Diff Press Setpt": 39,
-    "Diff Press Setpt err": 189,
-    "Gauge Press": 6,
-    "Gauge Press avg": 70,
-    "Gauge Press max": 183,
-    "Gauge Press min": 182,
-    "Gauge Press Peak": 102,
-    "Gauge Press Setpt": 38,
-    "Gauge Press Setpt err": 181,
-    "2nd Abs Press": 344,
-    "2nd Abs Press max": 351,
-    "2nd Abs Press min": 350,
-    "2nd Abs Press Setpt": 345,
-    "2nd Abs Press Setpt err": 349,
-    "2nd Diff Press": 360,
-    "2nd Diff Press max": 367,
-    "2nd Diff Press min": 366,
-    "2nd Diff Press Setpt": 361,
-    "2nd Diff Press Setpt err": 365,
-    "2nd Gauge Press": 352,
-    "2nd Gauge Press max": 359,
-    "2nd Gauge Press min": 358,
-    "2nd Gauge Press Setpt": 353,
-    "2nd Gauge Press Setpt err": 357,
+    "Batch_mass_remain.": 12,
+    "Batch_vol_remain.": 11,
+    "Batch_vol_ext_remain.": 19,
+    "Mass_Flow": 5,
+    "Mass_Flow_avg": 69,
+    "Mass_Flow_max": 175,
+    "Mass_Flow_min": 174,
+    "Mass_Flow_Peak": 101,
+    "Mass_Flow_Setpt": 37,
+    "Mass_Flow_Setpt_err": 173,
+    "Totalizing_Time": 10,
+    "Tot_Mass": 9,
+    "Tot_Vol": 8,
+    "Tot_Vol_Ext": 18,
+    "Volu_Flow": 4,
+    "Volu_Flow_avg": 68,
+    "Volu_Flow_max": 167,
+    "Volu_Flow_min": 166,
+    "Volu_Flow_Peak": 100,
+    "Volu_Flow_Setpt": 36,
+    "Volu_Flow_Setpt_err": 165,
+    "Vol_Flow_Ext": 17,
+    "Vol_Flow_Ext_avg": 81,
+    "Vol_Flow_Ext_max": 271,
+    "Vol_Flow_Ext_min": 270,
+    "Vol_Flow_Ext_Peak": 113,
+    "Vol_Flow_Ext_Setpt": 49,
+    "Vol_Flow_Ext_Setpt_err": 268,
+    "Abs_Press": 2,
+    "Abs_Press_avg": 66,
+    "Abs_Press_max": 151,
+    "Abs_Press_min": 150,
+    "Abs_Press_Peak": 98,
+    "Abs_Press_Setpt": 34,
+    "Abs_Press_Setpt_err": 149,
+    "Baro_Press": 15,
+    "Baro_Press_Avg": 79,
+    "Baro_Press_Max": 255,
+    "Baro_Press_Min": 254,
+    "Baro_Press_Peak": 111,
+    "Diff_Press": 7,
+    "Diff_Press_max": 191,
+    "Diff_Press_min": 190,
+    "Diff_Press_Setpt": 39,
+    "Diff_Press_Setpt_err": 189,
+    "Gauge_Press": 6,
+    "Gauge_Press_avg": 70,
+    "Gauge_Press_max": 183,
+    "Gauge_Press_min": 182,
+    "Gauge_Press_Peak": 102,
+    "Gauge_Press_Setpt": 38,
+    "Gauge_Press_Setpt_err": 181,
+    "2nd_Abs_Press": 344,
+    "2nd_Abs_Press_max": 351,
+    "2nd_Abs_Press_min": 350,
+    "2nd_Abs_Press_Setpt": 345,
+    "2nd_Abs_Press_Setpt_err": 349,
+    "2nd_Diff_Press": 360,
+    "2nd_Diff_Press_max": 367,
+    "2nd_Diff_Press_min": 366,
+    "2nd_Diff_Press_Setpt": 361,
+    "2nd_Diff_Press_Setpt_err": 365,
+    "2nd_Gauge_Press": 352,
+    "2nd_Gauge_Press_max": 359,
+    "2nd_Gauge_Press_min": 358,
+    "2nd_Gauge_Press_Setpt": 353,
+    "2nd_Gauge_Press_Setpt_err": 357,
     "None": 1,
-    "User Date": 400,
-    "Fluid Name": 703,
-    "Meas ID": 801,
-    "Meas Stat": 802,
+    "User_Date": 400,
+    "Fluid_Name": 703,
+    "Meas_ID": 801,
+    "Meas_Stat": 802,
     "Setpt": 32,
-    "Setpt err": 133,
+    "Setpt_err": 133,
     "Status": 26,
-    "Temp Ext": 16,
-    "Temp Ext max": 263,
-    "Temp Ext min": 262,
-    "Flow Temp": 3,
-    "Flow Temp max": 159,
-    "Flow Temp min": 158,
-    "Flow Temp avg": 67,
-    "Ext Vol Flow Ref Temp": 20,
-    "Ext Vol Flow Ref Temp avg": 84,
-    "Ext Vol Flow Ref Temp max": 295,
-    "Ext Vol Flow Ref Temp min": 294,
-    "Ext Vol Flow Ref Temp Peak": 116,
-    "Ext Vol Flow Ref Temp Src": 21,
-    "Ext Vol Flow Ref Temp Src avg": 85,
-    "Remain. Time Meas.": 14,
-    "User Time": 392,
-    "Valve Drive": 13,
-    "Valve Drive Setpt": 45,
-    "Rel Hum": 25,
-    "Rel Hum avg": 89,
-    "Rel Hum max": 335,
-    "Rel Hum min": 334,
-    "Rel Hum Peak": 121,
+    "Temp_Ext": 16,
+    "Temp_Ext_max": 263,
+    "Temp_Ext_min": 262,
+    "Flow_Temp": 3,
+    "Flow_Temp_max": 159,
+    "Flow_Temp_min": 158,
+    "Flow_Temp_avg": 67,
+    "Ext_Vol_Flow_Ref_Temp": 20,
+    "Ext_Vol_Flow_Ref_Temp_avg": 84,
+    "Ext_Vol_Flow_Ref_Temp_max": 295,
+    "Ext_Vol_Flow_Ref_Temp_Peak": 116,
+    "Ext_Vol_Flow_Ref_Temp_Src": 21,
+    "Ext_Vol_Flow_Ref_Temp_Src_avg": 85,
+    "Remain._Time_Meas.": 14,
+    "User_Time": 392,
+    "Valve_Drive": 13,
+    "Valve_Drive_Setpt": 45,
+    "Rel_Hum": 25,
+    "Rel_Hum_avg": 89,
+    "Rel_Hum_max": 335,
+    "Rel_Hum_min": 334,
+    "Rel_Hum_Peak": 121,
 }
 
 units = {
@@ -113,155 +112,155 @@ units = {
     "default": 0,
     "unknown": 1,
     "SμL/m": 2,
-    "std microliter per min": 2,
+    "std_microliter_per_min": 2,
     "SmL/s": 3,
-    "std milliliter per sec": 3,
-    "S mL/m": 4,
-    "std milliliter per min": 4,
-    "S mL/h": 5,
-    "std milliliter per hour": 5,
+    "std_milliliter_per_sec": 3,
+    "SmL/m": 4,
+    "std_milliliter_per_min": 4,
+    "SmL/h": 5,
+    "std_milliliter_per_hour": 5,
     "SL/s": 6,
-    "std liter per sec": 6,
+    "std_liter_per_sec": 6,
     "SLPM": 7,
-    "std liter per min": 7,
-    "S L/h": 8,
-    "std liter per hour": 8,
+    "std_liter_per_min": 7,
+    "SL/h": 8,
+    "std_liter_per_hour": 8,
     "SCCS": 11,
-    "std cubic cm per sec": 11,
+    "std_cubic_cm_per_sec": 11,
     "SCCM": 12,
-    "std cubic cm per min": 12,
+    "std_cubic_cm_per_min": 12,
     "Scm3/h": 13,
-    "std cubic cm per hour": 13,
+    "std_cubic_cm_per_hour": 13,
     "Sm3/m": 14,
-    "std cubic meter per min": 14,
+    "std_cubic_meter_per_min": 14,
     "Sm3/h": 15,
-    "std cubic meter per hour": 15,
+    "std_cubic_meter_per_hour": 15,
     "Sm3/d": 16,
-    "std cubic meter per day": 16,
+    "std_cubic_meter_per_day": 16,
     "Sin3/m": 17,
-    "std cubic inch per min": 17,
+    "std_cubic_inch_per_min": 17,
     "SCFM": 18,
-    "std cubic foot per min": 18,
+    "std_cubic_foot_per_min": 18,
     "SCFH": 19,
-    "std cubic foot per hour": 19,
+    "std_cubic_foot_per_hour": 19,
     "SCFD": 21,
-    "std cubic foot per day": 21,
+    "std_cubic_foot_per_day": 21,
     "kSCFM": 20,
-    "1000 std cbft per min": 20,
+    "1000_std_cbft_per_min": 20,
     "NμL/m": 32,
-    "norm microliter per min": 32,
+    "norm_microliter_per_min": 32,
     "NmL/s": 33,
-    "norm milliliter per sec": 33,
+    "norm_milliliter_per_sec": 33,
     "NmL/m": 34,
-    "norm milliliter per min": 34,
+    "norm_milliliter_per_min": 34,
     "NmL/h": 35,
-    "norm milliliter per hour": 35,
+    "norm_milliliter_per_hour": 35,
     "NL/s": 36,
-    "norm liter per sec": 36,
+    "norm_liter_per_sec": 36,
     "NLPM": 37,
-    "norm liter per min": 37,
+    "norm_liter_per_min": 37,
     "NL/h": 38,
-    "norm liter per hour": 38,
+    "norm_liter_per_hour": 38,
     "NCCS": 41,
-    "norm cubic cm per sec": 41,
+    "norm_cubic_cm_per_sec": 41,
     "NCCM": 42,
-    "norm cubic cm per min": 42,
+    "norm_cubic_cm_per_min": 42,
     "Ncm3/h": 43,
-    "norm cubic meter per hour": 43,
+    "norm_cubic_meter_per_hour": 43,
     "Nm3/m": 44,
-    "norm cubic meter per min": 44,
+    "norm_cubic_meter_per_min": 44,
     "Nm3/h": 45,
-    "norm cubic meter per hour": 45,
+    "norm_cubic_meter_per_hour": 45,
     "Nm3/d": 46,
-    "norm cubic meter per day": 46,
+    "norm_cubic_meter_per_day": 46,
     "count": 62,
     "%": 63,
     "mg/s": 64,
-    "milligram per sec": 64,
+    "milligram_per_sec": 64,
     "mg/m": 65,
-    "milligram per min": 65,
+    "milligram_per_min": 65,
     "g/s": 66,
-    "gram per sec": 66,
+    "gram_per_sec": 66,
     "g/m": 67,
-    "gram per min": 67,
+    "gram_per_min": 67,
     "g/h": 68,
-    "gram per hour": 68,
+    "gram_per_hour": 68,
     "kg/m": 69,
-    "kilogram per min": 69,
+    "kilogram_per_min": 69,
     "kg/h": 70,
-    "kilogram per hour": 70,
+    "kilogram_per_hour": 70,
     "oz/s": 71,
-    "ounce per sec": 71,
+    "ounce_per_sec": 71,
     "oz/m": 72,
-    "ounce per min": 72,
+    "ounce_per_min": 72,
     "lb/m": 73,
-    "pound per min": 73,
+    "pound_per_min": 73,
     "lb/h": 74,
-    "pound per hour": 74,
+    "pound_per_hour": 74,
     "SμL": 2,
-    "std microliter": 2,
+    "std_microliter": 2,
     "SmL": 3,
-    "std milliliter": 3,
+    "std_milliliter": 3,
     "SL": 4,
-    "std liter": 4,
+    "std_liter": 4,
     "Scm3": 6,
-    "std cubic cm": 6,
+    "std_cubic_cm": 6,
     "Sm3": 7,
-    "std cubic meter": 7,
+    "std_cubic_meter": 7,
     "Sin3": 8,
-    "std cubic inch": 8,
+    "std_cubic_inch": 8,
     "Sft3": 9,
-    "std cubic foot": 9,
+    "std_cubic_foot": 9,
     "kSft3": 10,
-    "std 1000 cubic foot": 10,
+    "std_1000_cubic_foot": 10,
     "NμL": 32,
-    "normal microliter": 32,
+    "normal_microliter": 32,
     "NmL": 33,
-    "normal milliliter": 33,
+    "normal_milliliter": 33,
     "NL": 34,
-    "normal liter": 34,
+    "normal_liter": 34,
     "Ncm3": 36,
-    "normal cubic cm": 36,
+    "normal_cubic_cm": 36,
     "Nm3": 37,
-    "normal cubic meter": 37,
+    "normal_cubic_meter": 37,
     "μL/m": 2,
-    "microliter per min": 2,
+    "microliter_per_min": 2,
     "mL/s": 3,
-    "milliliter per sec": 3,
+    "milliliter_per_sec": 3,
     "mL/m": 4,
-    "milliliter per min": 4,
+    "milliliter_per_min": 4,
     "mL/h": 5,
-    "milliliter per hour": 5,
+    "milliliter_per_hour": 5,
     "L/s": 6,
-    "liter per sec": 6,
+    "liter_per_sec": 6,
     "LPM": 7,
-    "liter per min": 7,
+    "liter_per_min": 7,
     "L/h": 8,
-    "liter per hour": 8,
+    "liter_per_hour": 8,
     "GPM": 9,
-    "gallon per min": 9,
+    "gallon_per_min": 9,
     "GPH": 10,
-    "gallon per hour": 10,
+    "gallon_per_hour": 10,
     "CCS": 11,
-    "cubic cm per sec": 11,
+    "cubic_cm_per_sec": 11,
     "CCM": 12,
-    "cubic cm per min": 12,
+    "cubic_cm_per_min": 12,
     "cm3/h": 13,
-    "cubic cm per hour": 13,
+    "cubic_cm_per_hour": 13,
     "m3/m": 14,
-    "cubic meter per min": 14,
+    "cubic_meter_per_min": 14,
     "m3/h": 15,
-    "cubic meter per hour": 15,
+    "cubic_meter_per_hour": 15,
     "m3/d": 16,
-    "cubic meter per day": 16,
+    "cubic_meter_per_day": 16,
     "in3/m": 17,
-    "cubic inch per min": 17,
+    "cubic_inch_per_min": 17,
     "CFM": 18,
-    "cubic foot per min": 18,
+    "cubic_foot_per_min": 18,
     "CFH": 19,
-    "cubic foot per hour": 19,
+    "cubic_foot_per_hour": 19,
     "CFD": 21,
-    "cubic foot per day": 21,
+    "cubic_foot_per_day": 21,
     "μL": 2,
     "microliter": 2,
     "mL": 3,
@@ -271,13 +270,13 @@ units = {
     "GAL": 5,
     "gallon": 5,
     "cm3": 6,
-    "cubic cm": 6,
+    "cubic_cm": 6,
     "m3": 7,
-    "cubic meter": 7,
+    "cubic_meter": 7,
     "in3": 8,
-    "cubic inch": 8,
+    "cubic_inch": 8,
     "ft3": 9,
-    "cubic foot": 9,
+    "cubic_foot": 9,
     "μP": 61,
     "micropoise": 61,
     "Pa": 2,
@@ -292,29 +291,29 @@ units = {
     "millibar": 6,
     "bar": 7,
     "g/cm2": 8,
-    "gram per square cm": 8,
+    "gram_per_square_cm": 8,
     "kg/cm2": 9,
-    "kilogram per square cm": 9,
+    "kilogram_per_square_cm": 9,
     "PSI": 10,
-    "pound per square inch": 10,
+    "pound_per_square_inch": 10,
     "PSF": 11,
-    "pound per square foot": 11,
+    "pound_per_square_foot": 11,
     "mTorr": 12,
     "millitorr": 12,
     "torr": 13,
     "mmHg": 14,
-    "millimeter of mercury": 14,
+    "millimeter_of_mercury": 14,
     "inHg": 15,
-    "inch of mercury": 15,
+    "inch_of_mercury": 15,
     "mmH2O": 16,
-    "millimeter of water": 16,
-    "millimeter of water @ 60F": 17,
+    "millimeter_of_water": 16,
+    "millimeter_of_water_@_60F": 17,
     "cmH2O": 18,
-    "centimeter of water": 18,
-    "centimeter of water @ 60F": 19,
+    "centimeter_of_water": 18,
+    "centimeter_of_water_@_60F": 19,
     "inH2O": 20,
-    "inch of water": 20,
-    "inch of water @ 60F": 21,
+    "inch_of_water": 20,
+    "inch_of_water_@_60F": 21,
     "atm": 22,
     "atmosphere": 22,
     "V": 61,
@@ -347,9 +346,9 @@ gases = {
     "Ar": 1,
     "Methane": 2,
     "CH4": 2,
-    "Carbon Monoxide": 3,
+    "Carbon_Monoxide": 3,
     "CO": 3,
-    "Carbon Dioxide": 4,
+    "Carbon_Dioxide": 4,
     "CO2": 4,
     "Ethane": 5,
     "C2H6": 5,
@@ -359,7 +358,7 @@ gases = {
     "He": 7,
     "Nitrogen": 8,
     "N2": 8,
-    "Nitrous Oxide": 9,
+    "Nitrous_Oxide": 9,
     "N2O": 9,
     "Neon": 10,
     "Ne": 10,
@@ -379,39 +378,39 @@ gases = {
     "Kr": 17,
     "Xenon": 18,
     "Xe": 18,
-    "Sulfur Hexafluoride": 19,
+    "Sulfur_Hexafluoride": 19,
     "SF6": 19,
-    "25% CO2, 75% Ar": 20,
+    "25%_CO2,_75%_Ar": 20,
     "C-25": 20,
-    "10% CO2, 90% Ar": 21,
+    "10%_CO2,_90%_Ar": 21,
     "C-10": 21,
-    "8% CO2, 92% Ar": 22,
+    "8%_CO2,_92%_Ar": 22,
     "C-8": 22,
-    "2% CO2, 98% Ar": 23,
+    "2%_CO2,_98%_Ar": 23,
     "C-2": 23,
-    "75% CO2, 25% Ar": 24,
+    "75%_CO2,_25%_Ar": 24,
     "C-75": 24,
-    "25% He, 75% Ar": 25,
+    "25%_He,_75%_Ar": 25,
     "He-25": 25,
-    "75% He, 25% Ar": 26,
+    "75%_He,_25%_Ar": 26,
     "He-75": 26,
-    "90% He, 7.5% Ar, 2.5% CO2": 27,
+    "90%_He,_7.5%_Ar,_2.5%_CO2": 27,
     "A1025": 27,
-    "Stargon CS": 28,
+    "Stargon_CS": 28,
     "Star29": 28,
-    "5% CH4, 95% Ar": 29,
+    "5%_CH4,_95%_Ar": 29,
     "P-5": 29,
-    "Nitric Oxide": 30,
+    "Nitric_Oxide": 30,
     "NO": 30,
-    "Nitrogen Trifluoride": 31,
+    "Nitrogen_Trifluoride": 31,
     "NF3": 31,
     "Ammonia": 32,
     "NH3": 32,
     "Chlorine": 33,
     "Cl2": 33,
-    "Hydrogen Sulphide": 34,
+    "Hydrogen_Sulphide": 34,
     "H2S": 34,
-    "Sulfur Dioxide": 35,
+    "Sulfur_Dioxide": 35,
     "SO2": 35,
     "Propylene": 36,
     "C3H6": 36,
@@ -423,7 +422,7 @@ gases = {
     "iButen": 82,
     "Trans-2-Butene": 83,
     "tButen": 83,
-    "Carbonyl Sulfide": 84,
+    "Carbonyl_Sulfide": 84,
     "COS": 84,
     "Dimethylether": 85,
     "C2H6O": 85,
@@ -472,161 +471,161 @@ gases = {
     "Octafluorocyclobutane": 113,
     "C4F8": 113,
     "R-318": 113,
-    "44% R-125, 4% R-134A, 52% R-143A": 114,
+    "44%_R-125,_4%_R-134A,_52%_R-143A": 114,
     "R-404A": 114,
-    "23% R-32, 25% R-125, 52% R-143A": 115,
+    "23%_R-32,_25%_R-125,_52%_R-143A": 115,
     "R-407C": 115,
-    "50% R-32, 50 R-125": 116,
+    "50%_R-32,_50_R-125": 116,
     "R-410A": 116,
-    "50% R-125, 50% R-143A": 117,
-    "15% CO2, 85% Ar": 140,
+    "50%_R-125,_50%_R-143A": 117,
+    "15%_CO2,_85%_Ar": 140,
     "C-15": 140,
-    "20% CO2, 80% Ar": 141,
+    "20%_CO2,_80%_Ar": 141,
     "C-20": 141,
-    "50% CO2, 50% Ar": 142,
+    "50%_CO2,_50%_Ar": 142,
     "C-50": 142,
-    "50% He, 50% Ar": 143,
+    "50%_He,_50%_Ar": 143,
     "He-50": 143,
-    "90% He, 10% Ar": 144,
+    "90%_He,_10%_Ar": 144,
     "He-90": 144,
-    "5% CH4, 95% CO2": 145,
+    "5%_CH4,_95%_CO2": 145,
     "Bio5M": 145,
-    "10% CH4, 90% CO2": 146,
+    "10_CH4,_90%_CO2": 146,
     "Bio10M": 146,
-    "15% CH4, 85% CO2": 147,
+    "15%_CH4,_85%_CO2": 147,
     "Bio15M": 147,
-    "20% CH4, 80% CO2": 148,
+    "20%_CH4,_80%_CO2": 148,
     "Bio20M": 148,
-    "25% CH4, 75% CO2": 149,
+    "25%_CH4,_75%_CO2": 149,
     "Bio25M": 149,
-    "30% CH4, 70% CO2": 150,
+    "30%_CH4,_70%_CO2": 150,
     "Bio30M": 150,
-    "35% CH4, 65% CO2": 151,
+    "35%_CH4,_65%_CO2": 151,
     "Bio35M": 151,
-    "40% CH4, 60% CO2": 152,
+    "40%_CH4,_60%_CO2": 152,
     "Bio40M": 152,
-    "45% CH4, 55% CO2": 153,
+    "45%_CH4,_55%_CO2": 153,
     "Bio45M": 153,
-    "50% CH4, 50% CO2": 154,
+    "50%_CH4,_50%_CO2": 154,
     "Bio50M": 154,
-    "55% CH4, 45% CO2": 155,
+    "55%_CH4,_45%_CO2": 155,
     "Bio55M": 155,
-    "60% CH4, 40% CO2": 156,
+    "60%_CH4,_40%_CO2": 156,
     "Bio60M": 156,
-    "65% CH4, 35% CO2": 157,
+    "65%_CH4,_35%_CO2": 157,
     "Bio65M": 157,
-    "70% CH4, 30% CO2": 158,
+    "70%_CH4,_30%_CO2": 158,
     "Bio70M": 158,
-    "75% CH4, 25% CO2": 159,
+    "75%_CH4,_25%_CO2": 159,
     "Bio75M": 159,
-    "80% CH4, 20% CO2": 160,
+    "80%_CH4,_20%_CO2": 160,
     "Bio80M": 160,
-    "85% CH4, 15% CO2": 161,
+    "85%_CH4,_15%_CO2": 161,
     "Bio85M": 161,
-    "90% CH4, 10% CO2": 162,
+    "90%_CH4,_10%_CO2": 162,
     "Bio90M": 162,
-    "95% CH4, 5% CO2": 163,
+    "95%_CH4,_5%_CO2": 163,
     "Bio95M": 163,
-    "32% O2, 68% N2": 164,
+    "32%_O2,_68%_N2": 164,
     "EAN-32": 164,
-    "36% O2, 64% N2": 165,
+    "36%_O2,_64%_N2": 165,
     "EAN-36": 165,
-    "40% O2, 60% N2": 166,
+    "40%_O2,_60%_N2": 166,
     "EAN-40": 166,
-    "20% O2, 80% He": 167,
+    "20%_O2,_80%_He": 167,
     "HeOx20": 167,
-    "21% O2, 79% He": 168,
+    "21%_O2,_79%_He": 168,
     "HeOx21": 168,
-    "30% O2, 70% He": 169,
+    "30%_O2,_70%_He": 169,
     "HeOx30": 169,
-    "40% O2, 60% He": 170,
+    "40%_O2,_60%_He": 170,
     "HeOx40": 170,
-    "50% O2, 50% He": 171,
+    "50%_O2,_50%_He": 171,
     "HeOx50": 171,
-    "60% O2, 40% He": 172,
+    "60%_O2,_40%_He": 172,
     "HeOx60": 172,
-    "80% O2, 20% He": 173,
+    "80%_O2,_20%_He": 173,
     "HeOx80": 173,
-    "99% O2, 1% He": 174,
+    "99%_O2,_1%_He": 174,
     "HeOx99": 174,
-    "Enriched Air 40% O2": 175,
+    "Enriched_Air_40%_O2": 175,
     "EA-40": 175,
-    "Enriched Air 60% O2": 176,
+    "Enriched_Air_60%_O2": 176,
     "EA-60": 176,
-    "Enriched Air 80% O2": 177,
+    "Enriched_Air_80%_O2": 177,
     "EA-80": 177,
     "Metab": 178,
-    "Metabolic Exhalant": 178,
-    "16% O2, 78.04% N2, 5% CO2, 0.96% Ar": 178,
-    "4.5% CO2, 13.5% N2, 82% He": 179,
+    "Metabolic_Exhalant": 178,
+    "16%_O2,_78.04%_N2,_5%_CO2,_0.96%_Ar": 178,
+    "4.5%_CO2,_13.5%_N2,_82%_He": 179,
     "LG-4.5": 179,
-    "6% CO2, 14% N2, 80% He": 180,
+    "6%_CO2,_14%_N2,_80%_He": 180,
     "LG-6": 180,
-    "7% CO2, 14% N2, 79% He": 181,
+    "7%_CO2,_14%_N2,_79%_He": 181,
     "LG-7": 181,
-    "9% CO2, 15% N2, 76% He": 182,
+    "9%_CO2,_15%_N2,_76%_He": 182,
     "LG-9": 182,
-    "9% Ne, 91% He": 183,
+    "9%_Ne,_91%_He": 183,
     "HeNe9": 183,
-    "9.4% CO2, 19.25% N2, 71.35% He": 184,
+    "9.4%_CO2,_19.25%_N2,_71.35%_He": 184,
     "LG-9.4": 184,
-    "40% H2, 29% CO, 20% CO2, 11% CH4": 185,
+    "40%_H2,_29%_CO,_20%_CO2,_11%_CH4": 185,
     "SynG-1": 185,
-    "64% H2, 28% CO, 1% CO2, 7% CH4": 186,
+    "64%_H2,_28%_CO,_1%_CO2,_7%_CH4": 186,
     "SynG-2": 186,
-    "70% H2, 4% CO, 25% CO2, 1% CH4": 187,
+    "70%_H2,_4%_CO,_25%_CO2,_1%_CH4": 187,
     "SynG-3": 187,
-    "83% H2, 14% CO, 3% CH4": 188,
+    "83%_H2,_14%_CO,_3%_CH4": 188,
     "SynG-4": 188,
-    "93% CH4, 3% C2H6, 1% C3H8, 2% N2, 1% CO2": 189,
+    "93%_CH4,_3%_C2H6,_1%_C3H8,_2%_N2,_1%_CO2": 189,
     "NatG-1": 189,
-    "95% CH4, 3% C2H6, 1% N2, 1% CO2": 190,
+    "95%_CH4,_3%_C2H6,_1%_N2,_1%_CO2": 190,
     "NatG-2": 190,
-    "95.2% CH4, 2.5% C2H6, 0.2% C3H8, 0.1% C4H10, 1.3% N2, 0.7% CO2": 191,
+    "95.2%_CH4,_2.5%_C2H6,_0.2%_C3H8,_0.1%_C4H10,_1.3%_N2,_0.7%_CO2": 191,
     "NatG-3": 191,
-    "50% H2, 35% CH4, 10% CO, 5% C2H4": 192,
+    "50%_H2,_35%_CH4,_10%_CO,_5%_C2H4": 192,
     "CoalG": 192,
-    "75% H2, 25% N2": 193,
+    "75%_H2,_25%_N2": 193,
     "Endo": 193,
-    "66.67% H2, 33.33% O2": 194,
+    "66.67%_H2,_33.33%_O2": 194,
     "HHO": 194,
-    "LPG: 96.1% C3H8, 1.5% C2H6, 0.4% C3H6, 1.9% n-C4H10": 195,
+    "LPG:_96.1%_C3H8,_1.5%_C2H6,_0.4%_C3H6,_1.9%_n-C4H10": 195,
     "HD-5": 195,
-    "LPG: 85% C3H8, 10% C3H6, 5% n-C4H10": 196,
+    "LPG:_85%_C3H8,_10%_C3H6,_5%_n-C4H10": 196,
     "HD-10": 196,
-    "89% O2, 7% N2, 4% Ar": 197,
+    "89%_O2,_7%_N2,_4%_Ar": 197,
     "OCG-89": 197,
-    "93% O2, 3% N2, 4% Ar": 198,
+    "93%_O2,_3%_N2,_4%_Ar": 198,
     "OCG-93": 198,
-    "95% O2, 1% N2, 4% Ar": 199,
+    "95%_O2,_1%_N2,_4%_Ar": 199,
     "OCG-95": 199,
-    "2.5% O2, 10.8% CO2, 85.7% N2, 1% Ar": 200,
+    "2.5%_O2,_10.8%_CO2,_85.7%_N2,_1%_Ar": 200,
     "FG-1": 200,
-    "2.9% O2, 14% CO2, 82.1% N2, 1% Ar": 201,
+    "2.9%_O2,_14%_CO2,_82.1%_N2,_1%_Ar": 201,
     "FG-2": 201,
-    "3.7% O2, 15% CO2, 80.3% N2, 1% Ar": 202,
+    "3.7%_O2,_15%_CO2,_80.3%_N2,_1%_Ar": 202,
     "FG-3": 202,
-    "7% O2, 12% CO2, 80% N2, 1% Ar": 203,
+    "7%_O2,_12%_CO2,_80%_N2,_1%_Ar": 203,
     "FG-4": 203,
-    "10% O2, 9.5% CO2, 79.5% N2, 1% Ar": 204,
+    "10%_O2,_9.5%_CO2,_79.5%_N2,_1%_Ar": 204,
     "FG-5": 204,
-    "13% O2, 7% CO2, 79% N2, 1% Ar": 205,
+    "13%_O2,_7%_CO2,_79%_N2,_1% Ar": 205,
     "FG-6": 205,
-    "10% CH4, 90% Ar": 206,
+    "10%_CH4,_90%_Ar": 206,
     "P-10": 206,
     "Deuterium": 210,
     "D-2": 210,
 }
 
 loop_var = {
-    34: "Abs Press",
-    345: "2nd Abs Press",
-    39: "Press Diff",
-    361: "2nd Press Diff",
-    38: "Gauge Press",
-    353: "2nd Gauge Press",
-    37: "Mass Flow",
-    36: "Vol Flow",
+    34: "Abs_Press",
+    345: "2nd_Abs_Press",
+    39: "Press_Diff",
+    361: "2nd_Press_Diff",
+    38: "Gauge_Press",
+    353: "2nd_Gauge_Press",
+    37: "Mass_Flow",
+    36: "Vol_Flow",
 }
 
 
@@ -691,7 +690,7 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def request(self, time: str, stats: list) -> dict:
+    async def request(self, stats: list = [], time: str = "1") -> dict:
         """
         Gets specified values averaged over specified time.
         time in ms
@@ -710,32 +709,40 @@ class Device(ABC):
                 ret[idx] = ret[idx]
         return dict(zip(stats, ret))
 
-    async def start_stream(self):  # Untested
+    async def start_stream(self):
         """
         Starts streaming data from device.
         """
         await self._device._write_readline(self._id + "@ @")
         return
 
-    async def stop_stream(self, new_id: str = "B"):  # Untested
+    async def stop_stream(self, new_id: str = "A"):
         """
         Stops streaming data from device.
         """
-        await self._device._write_readline("@@" + new_id)
+        await self._device._write_readline("@@ " + new_id)
         self.id = new_id
         return
 
     async def gas(self, gas: str = "", save: str = ""):
         """
         Gets the gas of the device.
-        Sets the gas of the device.  # Untested
+        Sets the gas of the device.
         """
         try:
             gas = gases[gas]
         except KeyError:
-            gas = gas
-        ret = await self._device._write_readline(self._id + "GS " + gas + " " + save)
-        return ret
+            gas = ""
+        if gas == "":
+            save = ""
+        ret = await self._device._write_readline(self._id + "GS " + str(gas) + " " + str(save))
+        df = [
+            "Unit ID", 
+            "Gas Code", 
+            "Gas", 
+            'Gas Long'
+        ]
+        return dict(zip(df, ret.split()))
 
     async def gas_list(self):
         """
@@ -747,12 +754,18 @@ class Device(ABC):
     async def setpoint(self, value: str = "", unit: str = ""):
         """
         Gets the setpoint of the device.
-        Sets the setpoint of the device.  # Untested
+        Sets the setpoint of the device.
         """
         ret = await self._device._write_readline(
-            self._id + "LS " + value + " " + units[unit]
+            self._id + "LS " + str(value) + " " + str(units[unit])
         )
-        df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Current Setpt", 
+            "Requested Setpt", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         return dict(zip(df, ret.split()))
 
     async def tare_abs_P(self):
@@ -796,7 +809,13 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "TB " + totalizer + " " + batch_vol + " " + unit_vol
         )
-        df = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Totalizer", 
+            "Batch Size", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         return dict(zip(df, ret.split()))
 
     async def deadband_limit(self, save: str = "", limit: str = ""):
@@ -807,7 +826,12 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCDB " + save + " " + limit
         )
-        df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Deadband", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         return dict(zip(df, ret.split()))
 
     async def deadband_mode(self, mode: str = ""):
@@ -816,7 +840,10 @@ class Device(ABC):
         Sets the reaction the controller has for values around setpoint # Untested
         """
         ret = await self._device._write_readline(self._id + "LCDM " + mode)
-        df = ["Unit ID", "Mode"]
+        df = [
+            "Unit ID", 
+            "Mode"
+        ]
         ret = ret.split()
         if str(ret[1]) == "1":
             ret[1] = "Hold valve at current"
@@ -831,7 +858,10 @@ class Device(ABC):
         algorithm 1 = PD/PDF, algorithm 2 = PD2I
         """
         ret = await self._device._write_readline(self._id + "LCA " + algorithm)
-        df = ["Unit ID", "Algorithm"]
+        df = [
+            "Unit ID", 
+            "Algorithm"
+        ]
         ret = ret.split()
         if str(ret[1]) == "1":
             ret[1] = "PD/PDF"
@@ -847,7 +877,10 @@ class Device(ABC):
             if self.loop_var[code] == var:
                 var = code
         ret = await self._device._write_readline(self._id + "LV " + var)
-        df = ["Unit ID", "Loop Var Val"]
+        df = [
+            "Unit ID", 
+            "Loop Var Val"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -861,7 +894,14 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LR " + var + " " + unit + " " + min + " " + max
         )
-        df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Loop Var", 
+            "Min", 
+            "Max", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         ret[1] = self.loop_var[int(ret[1])]
         return dict(zip(df, ret))
@@ -873,7 +913,13 @@ class Device(ABC):
         max = 0 to disable ramping (still must include unit)
         """
         ret = await self._device._write_readline(self._id + "SR " + max + " " + unit)
-        df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
+        df = [
+            "Unit ID", 
+            "Max Ramp Rate", 
+            "Unit Code", 
+            "Time Code", 
+            "Units"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -887,7 +933,11 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCGD " + save + " " + p_gain + " " + d_gain
         )
-        df = ["Unit ID", "P  Gain", "D Gain"]
+        df = [
+            "Unit ID", 
+            "P  Gain", 
+            "D Gain"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -901,7 +951,12 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCG " + save + " " + p_gain + " " + i_gain + " " + d_gain
         )
-        df = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
+        df = [
+            "Unit ID", 
+            "P  Gain", 
+            "I Gain", 
+            "D Gain"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -936,7 +991,13 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LSRC " + up + " " + down + " " + zero + " " + power_up
         )
-        df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
+        df = [
+            "Unit ID", 
+            "Ramp Up", 
+            "Ramp Down", 
+            "Zero Ramp", 
+            "Power Up Ramp"
+        ]
         ret = ret.split()
         for i in range(len(ret)):
             if ret[i] == "1":
@@ -951,7 +1012,10 @@ class Device(ABC):
         Sets how the setpoint is given to the controller # Untested
         """
         ret = await self._device._write_readline(self._id + "LSS " + mode)
-        df = ["Unit ID", "Mode"]
+        df = [
+            "Unit ID", 
+            "Mode"
+        ]
         ret = ret.split()
         if ret[1] == "A":
             ret[1] = "Analog"
@@ -973,7 +1037,11 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCVO " + save + " " + initial_offset + " " + closed_offset
         )
-        df = ["Unit ID", "Init Offser (%)", "Closed Offset (%)"]
+        df = [
+            "Unit ID", 
+            "Init Offser (%)", 
+            "Closed Offset (%)"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -983,7 +1051,10 @@ class Device(ABC):
         Sets how controller reacts to 0 Pressure setpoint # Untested
         """
         ret = await self._device._write_readline(self._id + "LCZA " + enable)
-        df = ["Unit ID", "Active Ctrl"]
+        df = [
+            "Unit ID", 
+            "Active Ctrl"
+        ]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -999,7 +1070,11 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "ZCA " + enable + " " + delay
         )
-        df = ["Unit ID", "Auto-tare", "Delay (s)"]
+        df = [
+            "Unit ID", 
+            "Auto-tare", 
+            "Delay (s)"
+        ]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -1047,7 +1122,11 @@ class Device(ABC):
             + " "
             + override
         )
-        df = ["Unit ID", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1061,21 +1140,25 @@ class Device(ABC):
         Sets time statistic is averaged over # Untested
         """
         stat_vals = {
-            "All Press": "1",
-            "Abs Press": "2",
-            "Vol Flow": "4",
-            "Mass Flow": "5",
-            "Gauge Press": "6",
-            "Diff Press": "7",
-            "Ext Vol Flow": "17",
-            "2nd Abs Press": "344",
-            "2nd Gauge Press": "352",
-            "2nd Diff Press": "360",
+            "All_Press": "1",
+            "Abs_Press": "2",
+            "Vol_Flow": "4",
+            "Mass_Flow": "5",
+            "Gauge_Press": "6",
+            "Diff_Press": "7",
+            "Ext_Vol_Flow": "17",
+            "2nd_Abs_Press": "344",
+            "2nd_Gauge_Press": "352",
+            "2nd_Diff_Press": "360",
         }
         ret = await self._device._write_readline(
             self._id + "DCA " + stat_vals[stat_val] + " " + avg_time
         )
-        df = ["Unit ID", "Value", "Time Const"]
+        df = [
+            "Unit ID", 
+            "Value", 
+            "Time Const"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1086,7 +1169,12 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "FPF " + str(statistics[stat_val]) + " " + str(units[unit_val])
         )
-        df = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Max Value", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1100,7 +1188,10 @@ class Device(ABC):
         elif enable.upper() == "N" or enable.upper() == "NO":
             enable = "0"
         ret = await self._device._write_readline(self._id + "ZCP " + enable)
-        df = ["Unit ID", "Power-Up Tare"]
+        df = [
+            "Unit ID", 
+            "Power-Up Tare"
+        ]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -1134,7 +1225,12 @@ class Device(ABC):
             + " "
             + str(press)
         )
-        df = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Curr Press Ref", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1151,7 +1247,12 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "DCFRT " + stp.upper() + " " + str(units[unit]) + " " + str(temp)
         )
-        df = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Curr Temp Ref", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1161,7 +1262,10 @@ class Device(ABC):
         Sets the zero band of the device. # Untested
         """
         ret = await self._device._write_readline(self._id + "DCZ " + zb)
-        df = ["Unit ID", "Zero Band (%)"]
+        df = [
+            "Unit ID", 
+            "Zero Band (%)"
+        ]
         ret = ret.split()
         ret.pop(1)
         return dict(zip(df, ret))
@@ -1185,7 +1289,12 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "ASOCV " + primary + " " + val + " " + unit
         )
-        df = ["Unit ID", "Value", "Unit Code", "Unit Label"]
+        df = [
+            "Unit ID", 
+            "Value", 
+            "Unit Code", 
+            "Unit Label"
+        ]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "Max"
@@ -1214,7 +1323,10 @@ class Device(ABC):
         ]:
             new_baud = ""
         ret = await self._device._write_readline(self._id + "NCB " + new_baud)
-        df = ["Unit ID", "Baud"]
+        df = [
+            "Unit ID", 
+            "Baud"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1226,7 +1338,10 @@ class Device(ABC):
         if type(dur) == int:
             dur = str(dur)
         ret = await self._device._write_readline(self._id + "FFP " + dur)
-        df = ["Unit ID", "Flashing?"]
+        df = [
+            "Unit ID", 
+            "Flashing?"
+        ]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "No"
@@ -1247,7 +1362,11 @@ class Device(ABC):
         Gets the firmware version of the device.
         """
         ret = await self._device._write_readline(self._id + "VE")
-        df = ["Unit ID", "Vers", "Creation Date"]
+        df = [
+            "Unit ID", 
+            "Vers", 
+            "Creation Date"
+        ]
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
         return dict(zip(df, ret))
@@ -1289,7 +1408,10 @@ class Device(ABC):
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(self._id + "ASRCA " + act_tot)
-        df = ["Unit ID", "Active Actions Total"]
+        df = [
+            "Unit ID", 
+            "Active Actions Total"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1309,9 +1431,15 @@ class Device(ABC):
             slot = str(slot)
         ret = await self._device._write_readline(self._id + "UD " + slot + " " + val)
         if val == "":
-            df = ["Unit ID", "Curr. Value"]
+            df = [
+                "Unit ID", 
+                "Curr. Value"
+            ]
         else:
-            df = ["Unit ID", "New Value"]
+            df = [
+                "Unit ID", 
+                "New Value"
+            ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1321,7 +1449,10 @@ class Device(ABC):
         Sets the streaming rate of the device. # Untested
         """
         ret = await self._device._write_readline(self._id + "NCS " + interval)
-        df = ["Unit ID", "Interval (ms)"]
+        df = [
+            "Unit ID", 
+            "Interval (ms)"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1402,7 +1533,10 @@ class Device(ABC):
         Deletes custom gas mixture. # Untested
         """
         ret = await self._device._write_readline(self._id + "GD " + gasN)
-        df = ["Unit ID", "Deleted Gas Num"]
+        df = [
+            "Unit ID", 
+            "Deleted Gas Num"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1492,7 +1626,10 @@ class Device(ABC):
         Enables/disables saving totalizer values.
         """
         ret = await self._device._write_readline(self._id + "TCR " + enable)
-        df = ["Unit ID", "Saving"]
+        df = [
+            "Unit ID", 
+            "Saving"
+        ]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "Disabled"
@@ -1545,7 +1682,13 @@ class Device(ABC):
         Gets current percentage of total possible electricity to valve
         """
         ret = await self._device._write_readline(self._id + "VD")
-        df = ["Unit ID", "Valve 1 %", "Valve 2 %", "Valve 3 %", "Valve 4 %"]
+        df = [
+            "Unit ID", 
+            "Valve 1 %", 
+            "Valve 2 %", 
+            "Valve 3 %", 
+            "Valve 4 %"
+        ]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1587,24 +1730,45 @@ class Device(ABC):
         self._df_units = units
         return units
 
-    async def get(self, measurement: str) -> dict:
+    async def get(self, measurements: list = ['@']) -> dict:
         """
         Gets the value of a measurement from the device
         """
-        # Poll
+        resp = {}
+        flag = 0
+        if type(measurements) == str:
+            measurements = measurements.split() # This won't work if the string has spaces
         # Request
-        # Get gas
-        # Get setpoint
-        return
+        for meas in measurements:
+            if str(meas) in list(statistics.keys()):
+                resp.update(await self.request([meas]))
+            # Get gas
+            elif str(meas).upper() == "GAS":
+                resp.update(await self.gas())
+            # Get setpoint==
+            elif str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT": # Should we add more cases?
+                resp.update(await self.setpoint())
+            # Poll (default)
+            elif flag == 0:
+                resp.update(await self.poll())
+                flag = 1
+        return resp
 
-    async def set(self, measurement: str) -> dict:
+    async def set(self, meas: str, param1: str, param2: str) -> dict:
         """
         Gets the value of a measurement from the device
         """
-        # Set gas
-        # Set setpoint
-        # Set loop control variable
-        return
+        resp = {}
+        # Set gas - Param1 = value, Param2 = save
+        if str(meas).upper() == "GAS":
+                resp.update(await self.gas(str(param1), str(param2)))
+        # Set setpoint - Param1 = value, Param2 = unit
+        elif str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT": # Should we add more cases?
+            resp.update(await self.setpoint(str(param1), str(param2)))
+        # Set loop control variable - Param1 = variable
+        elif str(meas).upper() == "LOOP" or str(meas).upper() == "LOOP CTRL": # Should we add more cases?
+            resp.update(await self.loop_control_var(str(param1)))
+        return resp
 
 
 class FlowMeter(Device):
