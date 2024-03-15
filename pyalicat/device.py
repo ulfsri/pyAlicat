@@ -735,13 +735,10 @@ class Device(ABC):
             gas = ""
         if gas == "":
             save = ""
-        ret = await self._device._write_readline(self._id + "GS " + str(gas) + " " + str(save))
-        df = [
-            "Unit ID", 
-            "Gas Code", 
-            "Gas", 
-            'Gas Long'
-        ]
+        ret = await self._device._write_readline(
+            self._id + "GS " + str(gas) + " " + str(save)
+        )
+        df = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         return dict(zip(df, ret.split()))
 
     async def gas_list(self):
@@ -759,13 +756,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LS " + str(value) + " " + str(units[unit])
         )
-        df = [
-            "Unit ID", 
-            "Current Setpt", 
-            "Requested Setpt", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
 
     async def tare_abs_P(self):
@@ -809,13 +800,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "TB " + totalizer + " " + batch_vol + " " + unit_vol
         )
-        df = [
-            "Unit ID", 
-            "Totalizer", 
-            "Batch Size", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
 
     async def deadband_limit(self, save: str = "", limit: str = ""):
@@ -826,12 +811,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCDB " + save + " " + limit
         )
-        df = [
-            "Unit ID", 
-            "Deadband", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
 
     async def deadband_mode(self, mode: str = ""):
@@ -840,10 +820,7 @@ class Device(ABC):
         Sets the reaction the controller has for values around setpoint # Untested
         """
         ret = await self._device._write_readline(self._id + "LCDM " + mode)
-        df = [
-            "Unit ID", 
-            "Mode"
-        ]
+        df = ["Unit ID", "Mode"]
         ret = ret.split()
         if str(ret[1]) == "1":
             ret[1] = "Hold valve at current"
@@ -858,10 +835,7 @@ class Device(ABC):
         algorithm 1 = PD/PDF, algorithm 2 = PD2I
         """
         ret = await self._device._write_readline(self._id + "LCA " + algorithm)
-        df = [
-            "Unit ID", 
-            "Algorithm"
-        ]
+        df = ["Unit ID", "Algorithm"]
         ret = ret.split()
         if str(ret[1]) == "1":
             ret[1] = "PD/PDF"
@@ -877,10 +851,7 @@ class Device(ABC):
             if self.loop_var[code] == var:
                 var = code
         ret = await self._device._write_readline(self._id + "LV " + var)
-        df = [
-            "Unit ID", 
-            "Loop Var Val"
-        ]
+        df = ["Unit ID", "Loop Var Val"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -894,14 +865,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LR " + var + " " + unit + " " + min + " " + max
         )
-        df = [
-            "Unit ID", 
-            "Loop Var", 
-            "Min", 
-            "Max", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = self.loop_var[int(ret[1])]
         return dict(zip(df, ret))
@@ -913,13 +877,7 @@ class Device(ABC):
         max = 0 to disable ramping (still must include unit)
         """
         ret = await self._device._write_readline(self._id + "SR " + max + " " + unit)
-        df = [
-            "Unit ID", 
-            "Max Ramp Rate", 
-            "Unit Code", 
-            "Time Code", 
-            "Units"
-        ]
+        df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -933,11 +891,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCGD " + save + " " + p_gain + " " + d_gain
         )
-        df = [
-            "Unit ID", 
-            "P  Gain", 
-            "D Gain"
-        ]
+        df = ["Unit ID", "P  Gain", "D Gain"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -951,12 +905,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCG " + save + " " + p_gain + " " + i_gain + " " + d_gain
         )
-        df = [
-            "Unit ID", 
-            "P  Gain", 
-            "I Gain", 
-            "D Gain"
-        ]
+        df = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -991,13 +940,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LSRC " + up + " " + down + " " + zero + " " + power_up
         )
-        df = [
-            "Unit ID", 
-            "Ramp Up", 
-            "Ramp Down", 
-            "Zero Ramp", 
-            "Power Up Ramp"
-        ]
+        df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         ret = ret.split()
         for i in range(len(ret)):
             if ret[i] == "1":
@@ -1012,10 +955,7 @@ class Device(ABC):
         Sets how the setpoint is given to the controller # Untested
         """
         ret = await self._device._write_readline(self._id + "LSS " + mode)
-        df = [
-            "Unit ID", 
-            "Mode"
-        ]
+        df = ["Unit ID", "Mode"]
         ret = ret.split()
         if ret[1] == "A":
             ret[1] = "Analog"
@@ -1037,11 +977,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "LCVO " + save + " " + initial_offset + " " + closed_offset
         )
-        df = [
-            "Unit ID", 
-            "Init Offser (%)", 
-            "Closed Offset (%)"
-        ]
+        df = ["Unit ID", "Init Offser (%)", "Closed Offset (%)"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1051,10 +987,7 @@ class Device(ABC):
         Sets how controller reacts to 0 Pressure setpoint # Untested
         """
         ret = await self._device._write_readline(self._id + "LCZA " + enable)
-        df = [
-            "Unit ID", 
-            "Active Ctrl"
-        ]
+        df = ["Unit ID", "Active Ctrl"]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -1070,11 +1003,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "ZCA " + enable + " " + delay
         )
-        df = [
-            "Unit ID", 
-            "Auto-tare", 
-            "Delay (s)"
-        ]
+        df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -1122,11 +1051,7 @@ class Device(ABC):
             + " "
             + override
         )
-        df = [
-            "Unit ID", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Unit Code", "Unit Label"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1154,11 +1079,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "DCA " + stat_vals[stat_val] + " " + avg_time
         )
-        df = [
-            "Unit ID", 
-            "Value", 
-            "Time Const"
-        ]
+        df = ["Unit ID", "Value", "Time Const"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1169,12 +1090,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "FPF " + str(statistics[stat_val]) + " " + str(units[unit_val])
         )
-        df = [
-            "Unit ID", 
-            "Max Value", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1188,10 +1104,7 @@ class Device(ABC):
         elif enable.upper() == "N" or enable.upper() == "NO":
             enable = "0"
         ret = await self._device._write_readline(self._id + "ZCP " + enable)
-        df = [
-            "Unit ID", 
-            "Power-Up Tare"
-        ]
+        df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
         if ret[1] == "1":
             ret[1] = "Enabled"
@@ -1225,12 +1138,7 @@ class Device(ABC):
             + " "
             + str(press)
         )
-        df = [
-            "Unit ID", 
-            "Curr Press Ref", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1247,12 +1155,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "DCFRT " + stp.upper() + " " + str(units[unit]) + " " + str(temp)
         )
-        df = [
-            "Unit ID", 
-            "Curr Temp Ref", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1262,10 +1165,7 @@ class Device(ABC):
         Sets the zero band of the device. # Untested
         """
         ret = await self._device._write_readline(self._id + "DCZ " + zb)
-        df = [
-            "Unit ID", 
-            "Zero Band (%)"
-        ]
+        df = ["Unit ID", "Zero Band (%)"]
         ret = ret.split()
         ret.pop(1)
         return dict(zip(df, ret))
@@ -1289,12 +1189,7 @@ class Device(ABC):
         ret = await self._device._write_readline(
             self._id + "ASOCV " + primary + " " + val + " " + unit
         )
-        df = [
-            "Unit ID", 
-            "Value", 
-            "Unit Code", 
-            "Unit Label"
-        ]
+        df = ["Unit ID", "Value", "Unit Code", "Unit Label"]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "Max"
@@ -1323,10 +1218,7 @@ class Device(ABC):
         ]:
             new_baud = ""
         ret = await self._device._write_readline(self._id + "NCB " + new_baud)
-        df = [
-            "Unit ID", 
-            "Baud"
-        ]
+        df = ["Unit ID", "Baud"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1338,10 +1230,7 @@ class Device(ABC):
         if type(dur) == int:
             dur = str(dur)
         ret = await self._device._write_readline(self._id + "FFP " + dur)
-        df = [
-            "Unit ID", 
-            "Flashing?"
-        ]
+        df = ["Unit ID", "Flashing?"]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "No"
@@ -1362,11 +1251,7 @@ class Device(ABC):
         Gets the firmware version of the device.
         """
         ret = await self._device._write_readline(self._id + "VE")
-        df = [
-            "Unit ID", 
-            "Vers", 
-            "Creation Date"
-        ]
+        df = ["Unit ID", "Vers", "Creation Date"]
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
         return dict(zip(df, ret))
@@ -1408,10 +1293,7 @@ class Device(ABC):
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(self._id + "ASRCA " + act_tot)
-        df = [
-            "Unit ID", 
-            "Active Actions Total"
-        ]
+        df = ["Unit ID", "Active Actions Total"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1431,15 +1313,9 @@ class Device(ABC):
             slot = str(slot)
         ret = await self._device._write_readline(self._id + "UD " + slot + " " + val)
         if val == "":
-            df = [
-                "Unit ID", 
-                "Curr. Value"
-            ]
+            df = ["Unit ID", "Curr. Value"]
         else:
-            df = [
-                "Unit ID", 
-                "New Value"
-            ]
+            df = ["Unit ID", "New Value"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1449,10 +1325,7 @@ class Device(ABC):
         Sets the streaming rate of the device. # Untested
         """
         ret = await self._device._write_readline(self._id + "NCS " + interval)
-        df = [
-            "Unit ID", 
-            "Interval (ms)"
-        ]
+        df = ["Unit ID", "Interval (ms)"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1533,10 +1406,7 @@ class Device(ABC):
         Deletes custom gas mixture. # Untested
         """
         ret = await self._device._write_readline(self._id + "GD " + gasN)
-        df = [
-            "Unit ID", 
-            "Deleted Gas Num"
-        ]
+        df = ["Unit ID", "Deleted Gas Num"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1626,10 +1496,7 @@ class Device(ABC):
         Enables/disables saving totalizer values.
         """
         ret = await self._device._write_readline(self._id + "TCR " + enable)
-        df = [
-            "Unit ID", 
-            "Saving"
-        ]
+        df = ["Unit ID", "Saving"]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "Disabled"
@@ -1682,13 +1549,7 @@ class Device(ABC):
         Gets current percentage of total possible electricity to valve
         """
         ret = await self._device._write_readline(self._id + "VD")
-        df = [
-            "Unit ID", 
-            "Valve 1 %", 
-            "Valve 2 %", 
-            "Valve 3 %", 
-            "Valve 4 %"
-        ]
+        df = ["Unit ID", "Valve 1 %", "Valve 2 %", "Valve 3 %", "Valve 4 %"]
         ret = ret.split()
         return dict(zip(df, ret))
 
@@ -1730,14 +1591,16 @@ class Device(ABC):
         self._df_units = units
         return units
 
-    async def get(self, measurements: list = ['@']) -> dict:
+    async def get(self, measurements: list = ["@"]) -> dict:
         """
         Gets the value of a measurement from the device
         """
         resp = {}
         flag = 0
         if type(measurements) == str:
-            measurements = measurements.split() # This won't work if the string has spaces
+            measurements = (
+                measurements.split()
+            )  # This won't work if the string has spaces
         # Request
         for meas in measurements:
             if str(meas) in list(statistics.keys()):
@@ -1746,7 +1609,9 @@ class Device(ABC):
             elif str(meas).upper() == "GAS":
                 resp.update(await self.gas())
             # Get setpoint==
-            elif str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT": # Should we add more cases?
+            elif (
+                str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT"
+            ):  # Should we add more cases?
                 resp.update(await self.setpoint())
             # Poll (default)
             elif flag == 0:
@@ -1761,12 +1626,16 @@ class Device(ABC):
         resp = {}
         # Set gas - Param1 = value, Param2 = save
         if str(meas).upper() == "GAS":
-                resp.update(await self.gas(str(param1), str(param2)))
+            resp.update(await self.gas(str(param1), str(param2)))
         # Set setpoint - Param1 = value, Param2 = unit
-        elif str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT": # Should we add more cases?
+        elif (
+            str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT"
+        ):  # Should we add more cases?
             resp.update(await self.setpoint(str(param1), str(param2)))
         # Set loop control variable - Param1 = variable
-        elif str(meas).upper() == "LOOP" or str(meas).upper() == "LOOP CTRL": # Should we add more cases?
+        elif (
+            str(meas).upper() == "LOOP" or str(meas).upper() == "LOOP CTRL"
+        ):  # Should we add more cases?
             resp.update(await self.loop_control_var(str(param1)))
         return resp
 
