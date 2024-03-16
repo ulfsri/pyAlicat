@@ -161,6 +161,7 @@ class SerialDevice(CommDevice):
         """
         with trio.move_on_after(self.timeout / 1000):
             return await self.ser_devc.receive_some(len)
+        return None
 
     async def _write(self, command: str) -> None:
         """
