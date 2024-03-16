@@ -632,6 +632,13 @@ loop_var = {
 async def new_device(port: str, id: str = "A", **kwargs: Any):
     """
     Creates a new device. Chooses appropriate device based on characteristics.
+
+    Args:
+    port: str
+        The port the device is connected to.
+    id: str
+        The id of the device. Default is "A".
+    **kwargs: Any
     """
     if port.startswith("/dev/"):
         device = SerialDevice(port, **kwargs)
@@ -651,14 +658,16 @@ async def new_device(port: str, id: str = "A", **kwargs: Any):
     dev_info = dict(
         zip(info_keys, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
     )
-    # print(dev_info)
     for cls in all_subclasses(Device):
         if cls.is_model(dev_info["model"]):
             return cls(device, dev_info, id, **kwargs)
     raise ValueError(f"Unknown device model: {dev_info['model']}")
 
 
-def all_subclasses(cls):
+def all_subclasses(cls) -> set:
+    """
+    Returns all subclasses of a class.
+    """
     return set(cls.__subclasses__()).union(
         [s for c in cls.__subclasses__() for s in all_subclasses(c)]
     )
@@ -683,7 +692,7 @@ class Device(ABC):
         Gets the current value of the device.
         """
         if self._df_format is None:
-            await self.get_df_format()
+            await self.get_df_format()  # Gets the format of the dataframe if it is not already known
         ret = await self._device._write_readline(self._id)
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -694,9 +703,17 @@ class Device(ABC):
         """
         Gets specified values averaged over specified time.
         time in ms
+
+        Args:
+        stats: list
+            The statistics to get.
+        time: str
+            The time to average over.
+
+        Returns:
+        dict
+            The requested statistics.
         """
-        if self._df_format is None:
-            await self.get_df_format()
         append = "DV " + str(time)
         for stat in stats:
             append = append + " " + str(statistics[stat])
@@ -886,8 +903,7 @@ class Device(ABC):
         Gets the proportional and intregral gains of the PD/PDF controller
         Sets the proportional and intregral gains of the PD/PDF controller # Untested
         """
-        if save != "":
-            save = "0 " + save
+        save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
             self._id + "LCGD " + save + " " + p_gain + " " + d_gain
         )
@@ -900,8 +916,7 @@ class Device(ABC):
         Gets the proportional, intregral, and derivative gains of the PD2I controller
         Sets the proportional, intregral, and derivative gains of the PD2I controller # Untested
         """
-        if save != "":
-            save = "0 " + save
+        save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
             self._id + "LCG " + save + " " + p_gain + " " + i_gain + " " + d_gain
         )
@@ -912,7 +927,7 @@ class Device(ABC):
     async def power_up_setpoint(self, val: str = ""):
         """
         Enables immediate setpoint on power-up # Untested
-        val = 0 to siable start-up setpoint
+        val = 0 to disable start-up setpoint
         """
         ret = await self._device._write_readline(self._id + "SPUE " + val)
         df = ret.split()
@@ -972,8 +987,7 @@ class Device(ABC):
         Gets how much power driven to valve when first opened or considered closed
         Sets how much power driven to valve when first opened or considered closed # Untested
         """
-        if save != "":
-            save = "0 " + save
+        save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
             self._id + "LCVO " + save + " " + initial_offset + " " + closed_offset
         )

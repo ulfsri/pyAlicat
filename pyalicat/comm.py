@@ -116,6 +116,18 @@ class SerialDevice(CommDevice):
             The baudrate of the Alicat device.
         timeout : int
             The timeout of the Alicat device in ms.
+        databits : int
+            The number of data bits.
+        parity : Parity
+            The parity of the Alicat device.
+        stopbits : StopBits
+            The of stop bits. Usually 1 or 2.
+        xonxoff : bool
+            Whether the port uses xonxoff.
+        rtscts : bool
+            Whether the port uses rtscts.
+        exclusive : bool
+            Whether the port is exclusive.
         """
         super().__init__(timeout)
 
@@ -137,12 +149,18 @@ class SerialDevice(CommDevice):
         """
         Reads the serial communication.
 
+        Parameters
+        ----------
+        len : int
+            The length of the serial communication to read. One character if not specified.
+
         Returns
         -------
         ByteString
             The serial communication.
         """
-        return await self.ser_devc.receive_some(len)
+        with trio.move_on_after(self.timeout / 1000):
+            return await self.ser_devc.receive_some(len)
 
     async def _write(self, command: str) -> None:
         """
@@ -168,21 +186,29 @@ class SerialDevice(CommDevice):
         async with self.ser_devc:
             line = bytearray()
             while True:
+                c = None
                 with trio.move_on_after(self.timeout / 1000):
                     c = await self._read(1)
                     line += c
                     if c == self.eol:
                         break
+                if c is None:
+                    break
         return line.decode("ascii")
 
     async def _write_readall(self, command: str) -> list:
         """
         Write command and read until timeout reached.
 
+        Parameters
+        ----------
+        command : str
+            The serial communication.
+
         Returns
         -------
-        str
-            The serial communication.
+        list
+            List of lines read from the device.
         """
         async with self.ser_devc:
             await self._write(command)
@@ -216,12 +242,15 @@ class SerialDevice(CommDevice):
             await self._write(command)
             line = bytearray()
             while True:
+                c = None
                 with trio.move_on_after(self.timeout / 1000):
                     c = await self._read(1)
                     if c == self.eol:
                         break
                     line += c
-            return line.decode("ascii")
+                if c is None:
+                    break
+        return line.decode("ascii")
 
     async def _flush(self) -> None:
         """
