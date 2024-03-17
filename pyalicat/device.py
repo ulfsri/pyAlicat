@@ -714,16 +714,14 @@ class Device(ABC):
         dict
             The requested statistics.
         """
-        append = "DV " + str(time)
-        for stat in stats:
-            append = append + " " + str(statistics[stat])
+        append = f"DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"
         ret = await self._device._write_readline(self._id + append)
         ret = ret.split()
         for idx in range(len(ret)):
             try:
                 ret[idx] = float(ret[idx])
             except ValueError:
-                ret[idx] = ret[idx]
+                pass
         return dict(zip(stats, ret))
 
     async def start_stream(self):
@@ -839,10 +837,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "LCDM " + mode)
         df = ["Unit ID", "Mode"]
         ret = ret.split()
-        if str(ret[1]) == "1":
-            ret[1] = "Hold valve at current"
-        elif str(ret[1]) == "2":
-            ret[1] = "Close valve"
+        output_mapping = {"1": "Hold valve at current", "2": "Close valve"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def loop_control_alg(self, algorithm: str = ""):
@@ -854,10 +850,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "LCA " + algorithm)
         df = ["Unit ID", "Algorithm"]
         ret = ret.split()
-        if str(ret[1]) == "1":
-            ret[1] = "PD/PDF"
-        elif str(ret[1]) == "2":
-            ret[1] = "PD2I"
+        algorithm_mapping = {"1": "PD/PDF", "2": "PD2I"}
+        ret[1] = algorithm_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def loop_control_var(self, var: str = ""):
@@ -869,8 +863,7 @@ class Device(ABC):
                 var = code
         ret = await self._device._write_readline(self._id + "LV " + var)
         df = ["Unit ID", "Loop Var Val"]
-        ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(df, ret.split()))
 
     async def loop_control_setpoint(
         self, var: str = "", unit: str = "", min: str = "", max: str = ""
@@ -895,8 +888,7 @@ class Device(ABC):
         """
         ret = await self._device._write_readline(self._id + "SR " + max + " " + unit)
         df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
-        ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(df, ret.split()))
 
     async def pdf_gains(self, save: str = "", p_gain="", d_gain=""):
         """
@@ -908,8 +900,7 @@ class Device(ABC):
             self._id + "LCGD " + save + " " + p_gain + " " + d_gain
         )
         df = ["Unit ID", "P  Gain", "D Gain"]
-        ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(df, ret.split()))
 
     async def pd2i_gains(self, save: str = "", p_gain="", i_gain="", d_gain=""):
         """
@@ -921,8 +912,7 @@ class Device(ABC):
             self._id + "LCG " + save + " " + p_gain + " " + i_gain + " " + d_gain
         )
         df = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
-        ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(df, ret.split()))
 
     async def power_up_setpoint(self, val: str = ""):
         """
@@ -957,11 +947,8 @@ class Device(ABC):
         )
         df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         ret = ret.split()
-        for i in range(len(ret)):
-            if ret[i] == "1":
-                ret[i] = "Enabled"
-            elif ret[i] == "0":
-                ret[i] = "Disabled"
+        output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret = [output_mapping.get(str(val), val) for val in ret]
         return dict(zip(df, ret))
 
     async def setpoint_source(self, mode: str = ""):
@@ -972,12 +959,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "LSS " + mode)
         df = ["Unit ID", "Mode"]
         ret = ret.split()
-        if ret[1] == "A":
-            ret[1] = "Analog"
-        elif ret[1] == "S":
-            ret[1] = "Serial/Display, Saved"
-        elif ret[1] == "U":
-            ret[1] = "Serial/Display, Unsaved"
+        mapping = {"A": "Analog", "S": "Serial/Display, Saved", "U": "Serial/Display, Unsaved"}
+        ret[1] = mapping.get(ret[1], ret[1])
         return dict(zip(df, ret))
 
     async def valve_offset(
@@ -1003,10 +986,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "LCZA " + enable)
         df = ["Unit ID", "Active Ctrl"]
         ret = ret.split()
-        if ret[1] == "1":
-            ret[1] = "Enabled"
-        elif ret[1] == "0":
-            ret[1] = "Disabled"
+        output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def auto_tare(self, enable: str = "", delay: str = ""):
@@ -1019,10 +1000,8 @@ class Device(ABC):
         )
         df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
-        if ret[1] == "1":
-            ret[1] = "Enabled"
-        elif ret[1] == "0":
-            ret[1] = "Disabled"
+        output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def configure_data_frame(self, format: str = ""):
@@ -1120,10 +1099,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "ZCP " + enable)
         df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
-        if ret[1] == "1":
-            ret[1] = "Enabled"
-        elif ret[1] == "0":
-            ret[1] = "Disabled"
+        output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def data_frame(self):
@@ -1221,15 +1198,8 @@ class Device(ABC):
         Gets the baud rate of the device.
         Sets the baud rate of the device. # Untested
         """
-        if new_baud != "" and int(new_baud) not in [
-            2400,
-            4800,
-            9600,
-            19200,
-            38400,
-            57600,
-            115200,
-        ]:
+        valid_baud_rates = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
+        if new_baud != "" and int(new_baud) not in valid_baud_rates:
             new_baud = ""
         ret = await self._device._write_readline(self._id + "NCB " + new_baud)
         df = ["Unit ID", "Baud"]
@@ -1246,10 +1216,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "FFP " + dur)
         df = ["Unit ID", "Flashing?"]
         ret = ret.split()
-        if ret[1] == "0":
-            ret[1] = "No"
-        elif ret[1] == "1":
-            ret[1] = "Yes"
+        output_mapping = {"1": "Yes", "0": "No"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
     async def change_unit_id(self, new_id: str = ""):
@@ -1292,18 +1260,7 @@ class Device(ABC):
         Gets the remote tare value
         Sets the remote tare effect. # Untested
         """
-        act_tot = 0
-        for act in actions:
-            if act == "Primary Press":
-                act_tot += 1
-            elif act == "Secondary Press":
-                act_tot += 2
-            elif act == "Flow":
-                act_tot += 4
-            elif act == "Reset Totalizer 1":
-                act_tot += 8
-            elif act == "Reset Totalizer 2":
-                act_tot += 16
+        act_tot = sum([1 if act == "Primary Press" else 2 if act == "Secondary Press" else 4 if act == "Flow" else 8 if act == "Reset Totalizer 1" else 16 if act == "Reset Totalizer 2" else 0 for act in actions])
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(self._id + "ASRCA " + act_tot)
@@ -1512,10 +1469,8 @@ class Device(ABC):
         ret = await self._device._write_readline(self._id + "TCR " + enable)
         df = ["Unit ID", "Saving"]
         ret = ret.split()
-        if ret[1] == "0":
-            ret[1] = "Disabled"
-        elif ret[1] == "1":
-            ret[1] = "Enabled"
+        output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))  # Need to convert codes to text
 
     async def canc_valve_hold(self):
@@ -1611,23 +1566,16 @@ class Device(ABC):
         """
         resp = {}
         flag = 0
-        if type(measurements) == str:
-            measurements = (
-                measurements.split()
-            )  # This won't work if the string has spaces
+        if isinstance(measurements, str):
+            measurements = measurements.split()
         # Request
         for meas in measurements:
-            if str(meas) in list(statistics.keys()):
+            if meas in statistics:
                 resp.update(await self.request([meas]))
-            # Get gas
-            elif str(meas).upper() == "GAS":
+            elif meas.upper() == "GAS":
                 resp.update(await self.gas())
-            # Get setpoint==
-            elif (
-                str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT"
-            ):  # Should we add more cases?
+            elif meas.upper() in ["SETPOINT", "STPT"]:
                 resp.update(await self.setpoint())
-            # Poll (default)
             elif flag == 0:
                 resp.update(await self.poll())
                 flag = 1
@@ -1639,17 +1587,12 @@ class Device(ABC):
         """
         resp = {}
         # Set gas - Param1 = value, Param2 = save
-        if str(meas).upper() == "GAS":
+        upper_meas = str(meas).upper()
+        if upper_meas == "GAS":
             resp.update(await self.gas(str(param1), str(param2)))
-        # Set setpoint - Param1 = value, Param2 = unit
-        elif (
-            str(meas).upper() == "SETPOINT" or str(meas).upper() == "STPT"
-        ):  # Should we add more cases?
+        elif upper_meas in ["SETPOINT", "STPT"]:
             resp.update(await self.setpoint(str(param1), str(param2)))
-        # Set loop control variable - Param1 = variable
-        elif (
-            str(meas).upper() == "LOOP" or str(meas).upper() == "LOOP CTRL"
-        ):  # Should we add more cases?
+        elif upper_meas in ["LOOP", "LOOP CTRL"]:
             resp.update(await self.loop_control_var(str(param1)))
         return resp
 
