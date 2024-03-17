@@ -6,6 +6,7 @@ from abc import ABC
 import trio
 from comm import CommDevice, SerialDevice
 from trio import run
+
 from .device import Device
 
 statistics = {
@@ -722,7 +723,9 @@ class Device(ABC):
         Returns:
             dict: The requested statistics.
         """
-        ret = await self._device._write_readline(f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}")
+        ret = await self._device._write_readline(
+            f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"
+        )
         ret = ret.split()
         for idx in range(len(ret)):
             try:
@@ -754,9 +757,7 @@ class Device(ABC):
         gas = gases.get(gas, "")
         if not gas:
             save = ""
-        ret = await self._device._write_readline(
-            f"{self._id}GS {gas} {save}"
-        )
+        ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
         df = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         return dict(zip(df, ret.split()))
 
@@ -772,9 +773,7 @@ class Device(ABC):
         Gets the setpoint of the device.
         Sets the setpoint of the device.
         """
-        ret = await self._device._write_readline(
-            f"{self._id}LS {value} {units[unit]}"
-        )
+        ret = await self._device._write_readline(f"{self._id}LS {value} {units[unit]}")
         df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
 
@@ -827,9 +826,7 @@ class Device(ABC):
         Gets the range the controller allows for drift around setpoint
         Sets the range the controller allows for drift around setpoint # Untested
         """
-        ret = await self._device._write_readline(
-            f"{self._id}LCDB {save} {limit}"
-        )
+        ret = await self._device._write_readline(f"{self._id}LCDB {save} {limit}")
         df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
 
@@ -963,7 +960,11 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}LSS {mode}")
         df = ["Unit ID", "Mode"]
         ret = ret.split()
-        mapping = {"A": "Analog", "S": "Serial/Display, Saved", "U": "Serial/Display, Unsaved"}
+        mapping = {
+            "A": "Analog",
+            "S": "Serial/Display, Saved",
+            "U": "Serial/Display, Unsaved",
+        }
         ret[1] = mapping.get(ret[1], ret[1])
         return dict(zip(df, ret))
 
@@ -999,9 +1000,7 @@ class Device(ABC):
         Gets if the controller auto tares
         Sets if the controller auto tares # Untested
         """
-        ret = await self._device._write_readline(
-            f"{self._id}ZCA {enable} {delay}"
-        )
+        ret = await self._device._write_readline(f"{self._id}ZCA {enable} {delay}")
         df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
@@ -1250,7 +1249,28 @@ class Device(ABC):
         Gets the remote tare value
         Sets the remote tare effect. # Untested
         """
-        act_tot = sum([1 if act == "Primary Press" else 2 if act == "Secondary Press" else 4 if act == "Flow" else 8 if act == "Reset Totalizer 1" else 16 if act == "Reset Totalizer 2" else 0 for act in actions])
+        act_tot = sum(
+            [
+                (
+                    1
+                    if act == "Primary Press"
+                    else (
+                        2
+                        if act == "Secondary Press"
+                        else (
+                            4
+                            if act == "Flow"
+                            else (
+                                8
+                                if act == "Reset Totalizer 1"
+                                else 16 if act == "Reset Totalizer 2" else 0
+                            )
+                        )
+                    )
+                )
+                for act in actions
+            ]
+        )
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(f"{self._id}ASRCA {act_tot}")
