@@ -1254,7 +1254,7 @@ class Device(ABC):
             "Secondary Press": 2,
             "Flow": 4,
             "Reset Totalizer 1": 8,
-            "Reset Totalizer 2": 16
+            "Reset Totalizer 2": 16,
         }
         act_tot = sum([action_dict.get(act, 0) for act in actions])
         if not actions:
