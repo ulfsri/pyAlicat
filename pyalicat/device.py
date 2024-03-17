@@ -6,6 +6,7 @@ from abc import ABC
 import trio
 from comm import CommDevice, SerialDevice
 from trio import run
+from .device import Device
 
 statistics = {
     "Batch_mass_remain.": 12,
@@ -629,20 +630,21 @@ loop_var = {
 }
 
 
-async def new_device(port: str, id: str = "A", **kwargs: Any):
+async def new_device(port: str, id: str = "A", **kwargs: Any) -> Device:
     """
     Creates a new device. Chooses appropriate device based on characteristics.
 
     Args:
-    port: str
-        The port the device is connected to.
-    id: str
-        The id of the device. Default is "A".
-    **kwargs: Any
+        port (str): The port the device is connected to.
+        id (str): The id of the device. Default is "A".
+        **kwargs: Any
+
+    Returns:
+        Device: The new device.
     """
     if port.startswith("/dev/"):
         device = SerialDevice(port, **kwargs)
-    dev_info = await device._write_readall(id + "??M*")
+    dev_info = await device._write_readall(f"{id}??M*")
     info_keys = [
         "manufacturer",
         "website",
@@ -667,6 +669,12 @@ async def new_device(port: str, id: str = "A", **kwargs: Any):
 def all_subclasses(cls) -> set:
     """
     Returns all subclasses of a class.
+
+    Args:
+        cls (class): The class to get the subclasses of.
+
+    Returns:
+        set: The set of subclasses.
     """
     return set(cls.__subclasses__()).union(
         [s for c in cls.__subclasses__() for s in all_subclasses(c)]
@@ -690,6 +698,9 @@ class Device(ABC):
     async def poll(self) -> dict:
         """
         Gets the current value of the device.
+
+        Returns:
+            dict: The current value of the device.
         """
         if self._df_format is None:
             await self.get_df_format()  # Gets the format of the dataframe if it is not already known
@@ -705,17 +716,13 @@ class Device(ABC):
         time in ms
 
         Args:
-        stats: list
-            The statistics to get.
-        time: str
-            The time to average over.
+            stats (list): The statistics to get.
+            time (str): The time to average over.
 
         Returns:
-        dict
-            The requested statistics.
+            dict: The requested statistics.
         """
-        append = f"DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"
-        ret = await self._device._write_readline(self._id + append)
+        ret = await self._device._write_readline(f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}")
         ret = ret.split()
         for idx in range(len(ret)):
             try:
@@ -728,14 +735,14 @@ class Device(ABC):
         """
         Starts streaming data from device.
         """
-        await self._device._write_readline(self._id + "@ @")
+        await self._device._write_readline(f"{self._id}@ @")
         return
 
     async def stop_stream(self, new_id: str = "A"):
         """
         Stops streaming data from device.
         """
-        await self._device._write_readline("@@ " + new_id)
+        await self._device._write_readline(f"@@ {new_id}")
         self.id = new_id
         return
 
@@ -744,14 +751,11 @@ class Device(ABC):
         Gets the gas of the device.
         Sets the gas of the device.
         """
-        try:
-            gas = gases[gas]
-        except KeyError:
-            gas = ""
-        if gas == "":
+        gas = gases.get(gas, "")
+        if not gas:
             save = ""
         ret = await self._device._write_readline(
-            self._id + "GS " + str(gas) + " " + str(save)
+            f"{self._id}GS {gas} {save}"
         )
         df = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         return dict(zip(df, ret.split()))
@@ -760,7 +764,7 @@ class Device(ABC):
         """
         Gets the list of avaiable gases for the device.
         """
-        ret = await self._device._write_readall(self._id + "??G*")
+        ret = await self._device._write_readall(f"{self._id}??G*")
         return ret
 
     async def setpoint(self, value: str = "", unit: str = ""):
@@ -769,7 +773,7 @@ class Device(ABC):
         Sets the setpoint of the device.
         """
         ret = await self._device._write_readline(
-            self._id + "LS " + str(value) + " " + str(units[unit])
+            f"{self._id}LS {value} {units[unit]}"
         )
         df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
@@ -778,7 +782,7 @@ class Device(ABC):
         """
         Tares the absolute pressure of the device, zeros out the abs P reference point # Untested
         """
-        ret = await self._device._write_readline(self._id + "PC")
+        ret = await self._device._write_readline(f"{self._id}PC")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -786,9 +790,9 @@ class Device(ABC):
 
     async def tare_flow(self):
         """
-        Creats a no-flow reference point # Untested
+        Creates a no-flow reference point # Untested
         """
-        ret = await self._device._write_readline(self._id + "V")
+        ret = await self._device._write_readline(f"{self._id}V")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -798,7 +802,7 @@ class Device(ABC):
         """
         Tares the gauge pressure of the device, zeros out the diff P reference point # Untested
         """
-        ret = await self._device._write_readline(self._id + "P")
+        ret = await self._device._write_readline(f"{self._id}P")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -813,7 +817,7 @@ class Device(ABC):
         set batch volume to size of desired flow. Set to 0 to disable batch.
         """
         ret = await self._device._write_readline(
-            self._id + "TB " + totalizer + " " + batch_vol + " " + unit_vol
+            f"{self._id}TB {totalizer} {batch_vol} {unit_vol}"
         )
         df = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
@@ -824,7 +828,7 @@ class Device(ABC):
         Sets the range the controller allows for drift around setpoint # Untested
         """
         ret = await self._device._write_readline(
-            self._id + "LCDB " + save + " " + limit
+            f"{self._id}LCDB {save} {limit}"
         )
         df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
@@ -834,7 +838,7 @@ class Device(ABC):
         Gets the reaction the controller has for values around setpoint
         Sets the reaction the controller has for values around setpoint # Untested
         """
-        ret = await self._device._write_readline(self._id + "LCDM " + mode)
+        ret = await self._device._write_readline(f"{self._id}LCDM {mode}")
         df = ["Unit ID", "Mode"]
         ret = ret.split()
         output_mapping = {"1": "Hold valve at current", "2": "Close valve"}
@@ -847,7 +851,7 @@ class Device(ABC):
         Sets the control algorithm the controller uses # Untested
         algorithm 1 = PD/PDF, algorithm 2 = PD2I
         """
-        ret = await self._device._write_readline(self._id + "LCA " + algorithm)
+        ret = await self._device._write_readline(f"{self._id}LCA {algorithm}")
         df = ["Unit ID", "Algorithm"]
         ret = ret.split()
         algorithm_mapping = {"1": "PD/PDF", "2": "PD2I"}
@@ -861,7 +865,7 @@ class Device(ABC):
         for code in self.loop_var:
             if self.loop_var[code] == var:
                 var = code
-        ret = await self._device._write_readline(self._id + "LV " + var)
+        ret = await self._device._write_readline(f"{self._id}LV {var}")
         df = ["Unit ID", "Loop Var Val"]
         return dict(zip(df, ret.split()))
 
@@ -873,7 +877,7 @@ class Device(ABC):
         Sets the statistic the setpoint controls # Untested
         """
         ret = await self._device._write_readline(
-            self._id + "LR " + var + " " + unit + " " + min + " " + max
+            f"{self._id}LR {var} {unit} {min} {max}"
         )
         df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -886,7 +890,7 @@ class Device(ABC):
         Sets how fast controller moves to new setpoint # Untested
         max = 0 to disable ramping (still must include unit)
         """
-        ret = await self._device._write_readline(self._id + "SR " + max + " " + unit)
+        ret = await self._device._write_readline(f"{self._id} SR {max} {unit}")
         df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         return dict(zip(df, ret.split()))
 
@@ -897,7 +901,7 @@ class Device(ABC):
         """
         save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
-            self._id + "LCGD " + save + " " + p_gain + " " + d_gain
+            f"{self._id}LCGD {save} {p_gain} {d_gain}"
         )
         df = ["Unit ID", "P  Gain", "D Gain"]
         return dict(zip(df, ret.split()))
@@ -909,7 +913,7 @@ class Device(ABC):
         """
         save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
-            self._id + "LCG " + save + " " + p_gain + " " + i_gain + " " + d_gain
+            f"{self._id} LCG {save} {p_gain} {i_gain} {d_gain}"
         )
         df = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
         return dict(zip(df, ret.split()))
@@ -919,7 +923,7 @@ class Device(ABC):
         Enables immediate setpoint on power-up # Untested
         val = 0 to disable start-up setpoint
         """
-        ret = await self._device._write_readline(self._id + "SPUE " + val)
+        ret = await self._device._write_readline(f"{self._id}SPUE {val}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -929,7 +933,7 @@ class Device(ABC):
         """
         Sets the overpressure limit of the device. # Untested
         """
-        ret = await self._device._write_readline(self._id + "OPL " + limit)
+        ret = await self._device._write_readline(f"{self._id}OPL {limit}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -943,7 +947,7 @@ class Device(ABC):
         Sets the ramp settings of the device. # Untested
         """
         ret = await self._device._write_readline(
-            self._id + "LSRC " + up + " " + down + " " + zero + " " + power_up
+            f"{self._id} LSRC {up} {down} {zero} {power_up}"
         )
         df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         ret = ret.split()
@@ -956,7 +960,7 @@ class Device(ABC):
         Gets how the setpoint is given to the controller
         Sets how the setpoint is given to the controller # Untested
         """
-        ret = await self._device._write_readline(self._id + "LSS " + mode)
+        ret = await self._device._write_readline(f"{self._id}LSS {mode}")
         df = ["Unit ID", "Mode"]
         ret = ret.split()
         mapping = {"A": "Analog", "S": "Serial/Display, Saved", "U": "Serial/Display, Unsaved"}
@@ -972,7 +976,7 @@ class Device(ABC):
         """
         save = f"0 {save}" if save else save
         ret = await self._device._write_readline(
-            self._id + "LCVO " + save + " " + initial_offset + " " + closed_offset
+            f"{self._id}LCVO {save} {initial_offset} {closed_offset}"
         )
         df = ["Unit ID", "Init Offser (%)", "Closed Offset (%)"]
         ret = ret.split()
@@ -983,7 +987,7 @@ class Device(ABC):
         Gets how controller reacts to 0 Pressure setpoint
         Sets how controller reacts to 0 Pressure setpoint # Untested
         """
-        ret = await self._device._write_readline(self._id + "LCZA " + enable)
+        ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
         df = ["Unit ID", "Active Ctrl"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
@@ -996,7 +1000,7 @@ class Device(ABC):
         Sets if the controller auto tares # Untested
         """
         ret = await self._device._write_readline(
-            self._id + "ZCA " + enable + " " + delay
+            f"{self._id}ZCA {enable} {delay}"
         )
         df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
@@ -1008,7 +1012,7 @@ class Device(ABC):
         """
         Sets data frame's format # Untested
         """
-        ret = await self._device._write_readline(self._id + "FDF " + format)
+        ret = await self._device._write_readline(f"{self._id}FDF {format}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1034,15 +1038,7 @@ class Device(ABC):
         else:
             override = "0"
         ret = await self._device._write_readline(
-            self._id
-            + "DCU "
-            + str(statistics[statistic_value])
-            + " "
-            + group
-            + " "
-            + units[unit_val]
-            + " "
-            + override
+            f"{self._id}DCU {statistics[statistic_value]} {group} {units[unit_val]} {override}"
         )
         df = ["Unit ID", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1070,7 +1066,7 @@ class Device(ABC):
             "2nd_Diff_Press": "360",
         }
         ret = await self._device._write_readline(
-            self._id + "DCA " + stat_vals[stat_val] + " " + avg_time
+            f"{self._id}DCA {stat_vals[stat_val]} {avg_time}"
         )
         df = ["Unit ID", "Value", "Time Const"]
         ret = ret.split()
@@ -1081,7 +1077,7 @@ class Device(ABC):
         Gets measurement range of given statistic
         """
         ret = await self._device._write_readline(
-            self._id + "FPF " + str(statistics[stat_val]) + " " + str(units[unit_val])
+            f"{self._id}FPF {statistics[stat_val]} {units[unit_val]}"
         )
         df = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1096,7 +1092,7 @@ class Device(ABC):
             enable = "1"
         elif enable.upper() == "N" or enable.upper() == "NO":
             enable = "0"
-        ret = await self._device._write_readline(self._id + "ZCP " + enable)
+        ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
         df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
@@ -1107,7 +1103,7 @@ class Device(ABC):
         """
         Gets info about current data frame
         """
-        ret = await self._device._write_readall(self._id + "??D*")
+        ret = await self._device._write_readall(f"{self._id}??D*")
         return ret
 
     async def stp_press(self, stp: str = "S", unit: str = "", press: str = ""):
@@ -1121,13 +1117,7 @@ class Device(ABC):
         if stp.upper() != "N":
             stp = "S"
         ret = await self._device._write_readline(
-            self._id
-            + "DCFRP "
-            + stp.upper()
-            + " "
-            + str(units[unit])
-            + " "
-            + str(press)
+            f"{self._id}DCFRP {stp.upper()} {str(units[unit])} {str(press)}"
         )
         df = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1144,7 +1134,7 @@ class Device(ABC):
         if stp.upper() != "N":
             stp = "S"
         ret = await self._device._write_readline(
-            self._id + "DCFRT " + stp.upper() + " " + str(units[unit]) + " " + str(temp)
+            f"{self._id}DCFRT {stp.upper()} {str(units[unit])} {str(temp)}"
         )
         df = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1155,7 +1145,7 @@ class Device(ABC):
         Gets the zero band of the device.
         Sets the zero band of the device. # Untested
         """
-        ret = await self._device._write_readline(self._id + "DCZ " + zb)
+        ret = await self._device._write_readline(f"{self._id}DCZ {zb}")
         df = ["Unit ID", "Zero Band (%)"]
         ret = ret.split()
         ret.pop(1)
@@ -1178,7 +1168,7 @@ class Device(ABC):
             else:
                 val = str(statistics[val])
         ret = await self._device._write_readline(
-            self._id + "ASOCV " + primary + " " + val + " " + unit
+            f"{self._id}ASOCV {primary} {val} {unit}"
         )
         df = ["Unit ID", "Value", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1201,7 +1191,7 @@ class Device(ABC):
         valid_baud_rates = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
         if new_baud != "" and int(new_baud) not in valid_baud_rates:
             new_baud = ""
-        ret = await self._device._write_readline(self._id + "NCB " + new_baud)
+        ret = await self._device._write_readline(f"{self._id}NCB {new_baud}")
         df = ["Unit ID", "Baud"]
         ret = ret.split()
         return dict(zip(df, ret))
@@ -1213,7 +1203,7 @@ class Device(ABC):
         """
         if type(dur) == int:
             dur = str(dur)
-        ret = await self._device._write_readline(self._id + "FFP " + dur)
+        ret = await self._device._write_readline(f"{self._id}FFP {dur}")
         df = ["Unit ID", "Flashing?"]
         ret = ret.split()
         output_mapping = {"1": "Yes", "0": "No"}
@@ -1224,7 +1214,7 @@ class Device(ABC):
         """
         Sets the unit ID of the device. # Untested
         """
-        ret = await self._device._write_readline(self._id + "@ " + new_id)
+        ret = await self._device._write_readline(f"{self._id}@ {new_id}")
         self.id = new_id
         return ret
 
@@ -1232,7 +1222,7 @@ class Device(ABC):
         """
         Gets the firmware version of the device.
         """
-        ret = await self._device._write_readline(self._id + "VE")
+        ret = await self._device._write_readline(f"{self._id}VE")
         df = ["Unit ID", "Vers", "Creation Date"]
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
@@ -1242,7 +1232,7 @@ class Device(ABC):
         """
         Disables buttons on front of the device.
         """
-        ret = await self._device._write_readline(self._id + "L")
+        ret = await self._device._write_readline(f"{self._id}L")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1252,7 +1242,7 @@ class Device(ABC):
         """
         Gets info about current data frame
         """
-        ret = await self._device._write_readall(self._id + "??M*")
+        ret = await self._device._write_readall(f"{self._id}??M*")
         return ret
 
     async def remote_tare(self, actions: list = []):
@@ -1263,7 +1253,7 @@ class Device(ABC):
         act_tot = sum([1 if act == "Primary Press" else 2 if act == "Secondary Press" else 4 if act == "Flow" else 8 if act == "Reset Totalizer 1" else 16 if act == "Reset Totalizer 2" else 0 for act in actions])
         if not actions:
             act_tot = ""
-        ret = await self._device._write_readline(self._id + "ASRCA " + act_tot)
+        ret = await self._device._write_readline(f"{self._id}ASRCA {act_tot}")
         df = ["Unit ID", "Active Actions Total"]
         ret = ret.split()
         return dict(zip(df, ret))
@@ -1272,7 +1262,7 @@ class Device(ABC):
         """
         Restores factory settings of the device. # Untested
         """
-        ret = await self._device._write_readline(self._id + "FACTORY RESTORE ALL")
+        ret = await self._device._write_readline(f"{self._id}FACTORY RESTORE ALL")
         return ret
 
     async def user_data(self, slot: str = "", val: str = ""):
@@ -1282,7 +1272,7 @@ class Device(ABC):
         """
         if type(slot) == int:
             slot = str(slot)
-        ret = await self._device._write_readline(self._id + "UD " + slot + " " + val)
+        ret = await self._device._write_readline(f"{self._id}UD {slot} {val}")
         if val == "":
             df = ["Unit ID", "Curr. Value"]
         else:
@@ -1295,7 +1285,7 @@ class Device(ABC):
         Gets the streaming rate of the device.
         Sets the streaming rate of the device. # Untested
         """
-        ret = await self._device._write_readline(self._id + "NCS " + interval)
+        ret = await self._device._write_readline(f"{self._id}NCS {interval}")
         df = ["Unit ID", "Interval (ms)"]
         ret = ret.split()
         return dict(zip(df, ret))
@@ -1304,7 +1294,7 @@ class Device(ABC):
         """
         Disables buttons on front of the device.
         """
-        ret = await self._device._write_readline(self._id + "U")
+        ret = await self._device._write_readline(f"{self._id}U")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1329,31 +1319,7 @@ class Device(ABC):
         Sets custom gas mixture. # Untested
         """
         ret = await self._device._write_readline(
-            self._id
-            + "GM "
-            + name
-            + " "
-            + number
-            + " "
-            + gas1P
-            + " "
-            + gas1N
-            + " "
-            + gas2P
-            + " "
-            + gas2N
-            + " "
-            + gas3P
-            + " "
-            + gas3N
-            + " "
-            + gas4P
-            + " "
-            + gas4N
-            + " "
-            + gas5P
-            + " "
-            + gas5N
+            f"{self._id}GM {name} {number} {gas1P} {gas1N} {gas2P} {gas2N} {gas3P} {gas3N} {gas4P} {gas4N} {gas5P} {gas5N}"
         )
         df = [
             "Unit ID",
@@ -1376,7 +1342,7 @@ class Device(ABC):
         """
         Deletes custom gas mixture. # Untested
         """
-        ret = await self._device._write_readline(self._id + "GD " + gasN)
+        ret = await self._device._write_readline(f"{self._id}GD {gasN}")
         df = ["Unit ID", "Deleted Gas Num"]
         ret = ret.split()
         return dict(zip(df, ret))
@@ -1385,7 +1351,7 @@ class Device(ABC):
         """
         Gets Percentages of gases in mixture. # Untested
         """
-        ret = await self._device._write_readall(self._id + "GC " + gasN)
+        ret = await self._device._write_readall(f"{self._id}GC {gasN}")
         df = [
             "Unit ID",
             "Gas Num",
@@ -1416,19 +1382,7 @@ class Device(ABC):
         Configures totalizer. # Untested
         """
         ret = await self._device._write_readline(
-            self._id
-            + "TC "
-            + totalizer
-            + " "
-            + flow_stat_val
-            + " "
-            + mode
-            + " "
-            + lmit_mode
-            + " "
-            + num
-            + " "
-            + dec
+            f"{self._id}TC {totalizer} {flow_stat_val} {mode} {lmit_mode} {num} {dec}"
         )
         df = [
             "Unit ID",
@@ -1446,7 +1400,7 @@ class Device(ABC):
         """
         Returns totalizer count to zero and restarts timer. # Untested
         """
-        ret = await self._device._write_readline(self._id + "T " + totalizer)
+        ret = await self._device._write_readline(f"{self._id}T {totalizer}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1456,7 +1410,7 @@ class Device(ABC):
         """
         Returns totalizer count to zero and restarts timer. # Untested
         """
-        ret = await self._device._write_readline(self._id + "TP " + totalizer)
+        ret = await self._device._write_readline(f"{self._id}TP {totalizer}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1466,7 +1420,7 @@ class Device(ABC):
         """
         Enables/disables saving totalizer values.
         """
-        ret = await self._device._write_readline(self._id + "TCR " + enable)
+        ret = await self._device._write_readline(f"{self._id}TCR {enable}")
         df = ["Unit ID", "Saving"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
@@ -1477,7 +1431,7 @@ class Device(ABC):
         """
         Removes valve holds. # Untested
         """
-        ret = await self._device._write_readline(self._id + "C")
+        ret = await self._device._write_readline(f"{self._id}C")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1487,7 +1441,7 @@ class Device(ABC):
         """
         Closes upstream valve, opens downstream valve 100% # Untested
         """
-        ret = await self._device._write_readline(self._id + "E")
+        ret = await self._device._write_readline(f"{self._id}E")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1497,7 +1451,7 @@ class Device(ABC):
         """
         Hold valves at current position # Untested
         """
-        ret = await self._device._write_readline(self._id + "HP")
+        ret = await self._device._write_readline(f"{self._id}HP")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1507,7 +1461,7 @@ class Device(ABC):
         """
         Close all valves # Untested
         """
-        ret = await self._device._write_readline(self._id + "HC")
+        ret = await self._device._write_readline(f"{self._id}HC")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1517,7 +1471,7 @@ class Device(ABC):
         """
         Gets current percentage of total possible electricity to valve
         """
-        ret = await self._device._write_readline(self._id + "VD")
+        ret = await self._device._write_readline(f"{self._id}VD")
         df = ["Unit ID", "Valve 1 %", "Valve 2 %", "Valve 3 %", "Valve 4 %"]
         ret = ret.split()
         return dict(zip(df, ret))
@@ -1526,7 +1480,7 @@ class Device(ABC):
         """
         Gets the format of the current dataframe format of the device
         """
-        resp = await self._device._write_readall(self._id + "??D*")
+        resp = await self._device._write_readall(f"{self._id}??D*")
         splits = []
         for match in re.finditer(r"\s", resp[0]):
             splits.append(match.start())
@@ -1554,7 +1508,7 @@ class Device(ABC):
         units = [None] * len(measurement)
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             ret = await self._device._write_readline(
-                self._id + "DCU " + str(statistics[list(measurement.keys())[index]])
+                f"{self._id}DCU {statistics[list(measurement.keys())[index]]}"
             )
             units[index] = ret.split()[2]
         self._df_units = units
