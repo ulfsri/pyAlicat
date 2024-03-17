@@ -1249,28 +1249,14 @@ class Device(ABC):
         Gets the remote tare value
         Sets the remote tare effect. # Untested
         """
-        act_tot = sum(
-            [
-                (
-                    1
-                    if act == "Primary Press"
-                    else (
-                        2
-                        if act == "Secondary Press"
-                        else (
-                            4
-                            if act == "Flow"
-                            else (
-                                8
-                                if act == "Reset Totalizer 1"
-                                else 16 if act == "Reset Totalizer 2" else 0
-                            )
-                        )
-                    )
-                )
-                for act in actions
-            ]
-        )
+        action_dict = {
+            "Primary Press": 1,
+            "Secondary Press": 2,
+            "Flow": 4,
+            "Reset Totalizer 1": 8,
+            "Reset Totalizer 2": 16
+        }
+        act_tot = sum([action_dict.get(act, 0) for act in actions])
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(f"{self._id}ASRCA {act_tot}")
