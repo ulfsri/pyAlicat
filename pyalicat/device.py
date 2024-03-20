@@ -7,631 +7,17 @@ import trio
 from comm import CommDevice, SerialDevice
 from trio import run
 
-from .device import Device
+import json
 
-statistics = {
-    "Batch_mass_remain.": 12,
-    "Batch_vol_remain.": 11,
-    "Batch_vol_ext_remain.": 19,
-    "Mass_Flow": 5,
-    "Mass_Flow_avg": 69,
-    "Mass_Flow_max": 175,
-    "Mass_Flow_min": 174,
-    "Mass_Flow_Peak": 101,
-    "Mass_Flow_Setpt": 37,
-    "Mass_Flow_Setpt_err": 173,
-    "Totalizing_Time": 10,
-    "Tot_Mass": 9,
-    "Tot_Vol": 8,
-    "Tot_Vol_Ext": 18,
-    "Volu_Flow": 4,
-    "Volu_Flow_avg": 68,
-    "Volu_Flow_max": 167,
-    "Volu_Flow_min": 166,
-    "Volu_Flow_Peak": 100,
-    "Volu_Flow_Setpt": 36,
-    "Volu_Flow_Setpt_err": 165,
-    "Vol_Flow_Ext": 17,
-    "Vol_Flow_Ext_avg": 81,
-    "Vol_Flow_Ext_max": 271,
-    "Vol_Flow_Ext_min": 270,
-    "Vol_Flow_Ext_Peak": 113,
-    "Vol_Flow_Ext_Setpt": 49,
-    "Vol_Flow_Ext_Setpt_err": 268,
-    "Abs_Press": 2,
-    "Abs_Press_avg": 66,
-    "Abs_Press_max": 151,
-    "Abs_Press_min": 150,
-    "Abs_Press_Peak": 98,
-    "Abs_Press_Setpt": 34,
-    "Abs_Press_Setpt_err": 149,
-    "Baro_Press": 15,
-    "Baro_Press_Avg": 79,
-    "Baro_Press_Max": 255,
-    "Baro_Press_Min": 254,
-    "Baro_Press_Peak": 111,
-    "Diff_Press": 7,
-    "Diff_Press_max": 191,
-    "Diff_Press_min": 190,
-    "Diff_Press_Setpt": 39,
-    "Diff_Press_Setpt_err": 189,
-    "Gauge_Press": 6,
-    "Gauge_Press_avg": 70,
-    "Gauge_Press_max": 183,
-    "Gauge_Press_min": 182,
-    "Gauge_Press_Peak": 102,
-    "Gauge_Press_Setpt": 38,
-    "Gauge_Press_Setpt_err": 181,
-    "2nd_Abs_Press": 344,
-    "2nd_Abs_Press_max": 351,
-    "2nd_Abs_Press_min": 350,
-    "2nd_Abs_Press_Setpt": 345,
-    "2nd_Abs_Press_Setpt_err": 349,
-    "2nd_Diff_Press": 360,
-    "2nd_Diff_Press_max": 367,
-    "2nd_Diff_Press_min": 366,
-    "2nd_Diff_Press_Setpt": 361,
-    "2nd_Diff_Press_Setpt_err": 365,
-    "2nd_Gauge_Press": 352,
-    "2nd_Gauge_Press_max": 359,
-    "2nd_Gauge_Press_min": 358,
-    "2nd_Gauge_Press_Setpt": 353,
-    "2nd_Gauge_Press_Setpt_err": 357,
-    "None": 1,
-    "User_Date": 400,
-    "Fluid_Name": 703,
-    "Meas_ID": 801,
-    "Meas_Stat": 802,
-    "Setpt": 32,
-    "Setpt_err": 133,
-    "Status": 26,
-    "Temp_Ext": 16,
-    "Temp_Ext_max": 263,
-    "Temp_Ext_min": 262,
-    "Flow_Temp": 3,
-    "Flow_Temp_max": 159,
-    "Flow_Temp_min": 158,
-    "Flow_Temp_avg": 67,
-    "Ext_Vol_Flow_Ref_Temp": 20,
-    "Ext_Vol_Flow_Ref_Temp_avg": 84,
-    "Ext_Vol_Flow_Ref_Temp_max": 295,
-    "Ext_Vol_Flow_Ref_Temp_Peak": 116,
-    "Ext_Vol_Flow_Ref_Temp_Src": 21,
-    "Ext_Vol_Flow_Ref_Temp_Src_avg": 85,
-    "Remain._Time_Meas.": 14,
-    "User_Time": 392,
-    "Valve_Drive": 13,
-    "Valve_Drive_Setpt": 45,
-    "Rel_Hum": 25,
-    "Rel_Hum_avg": 89,
-    "Rel_Hum_max": 335,
-    "Rel_Hum_min": 334,
-    "Rel_Hum_Peak": 121,
-}
+# from .device import Device
 
-units = {
-    "": "",
-    "default": 0,
-    "unknown": 1,
-    "SμL/m": 2,
-    "std_microliter_per_min": 2,
-    "SmL/s": 3,
-    "std_milliliter_per_sec": 3,
-    "SmL/m": 4,
-    "std_milliliter_per_min": 4,
-    "SmL/h": 5,
-    "std_milliliter_per_hour": 5,
-    "SL/s": 6,
-    "std_liter_per_sec": 6,
-    "SLPM": 7,
-    "std_liter_per_min": 7,
-    "SL/h": 8,
-    "std_liter_per_hour": 8,
-    "SCCS": 11,
-    "std_cubic_cm_per_sec": 11,
-    "SCCM": 12,
-    "std_cubic_cm_per_min": 12,
-    "Scm3/h": 13,
-    "std_cubic_cm_per_hour": 13,
-    "Sm3/m": 14,
-    "std_cubic_meter_per_min": 14,
-    "Sm3/h": 15,
-    "std_cubic_meter_per_hour": 15,
-    "Sm3/d": 16,
-    "std_cubic_meter_per_day": 16,
-    "Sin3/m": 17,
-    "std_cubic_inch_per_min": 17,
-    "SCFM": 18,
-    "std_cubic_foot_per_min": 18,
-    "SCFH": 19,
-    "std_cubic_foot_per_hour": 19,
-    "SCFD": 21,
-    "std_cubic_foot_per_day": 21,
-    "kSCFM": 20,
-    "1000_std_cbft_per_min": 20,
-    "NμL/m": 32,
-    "norm_microliter_per_min": 32,
-    "NmL/s": 33,
-    "norm_milliliter_per_sec": 33,
-    "NmL/m": 34,
-    "norm_milliliter_per_min": 34,
-    "NmL/h": 35,
-    "norm_milliliter_per_hour": 35,
-    "NL/s": 36,
-    "norm_liter_per_sec": 36,
-    "NLPM": 37,
-    "norm_liter_per_min": 37,
-    "NL/h": 38,
-    "norm_liter_per_hour": 38,
-    "NCCS": 41,
-    "norm_cubic_cm_per_sec": 41,
-    "NCCM": 42,
-    "norm_cubic_cm_per_min": 42,
-    "Ncm3/h": 43,
-    "norm_cubic_meter_per_hour": 43,
-    "Nm3/m": 44,
-    "norm_cubic_meter_per_min": 44,
-    "Nm3/h": 45,
-    "norm_cubic_meter_per_hour": 45,
-    "Nm3/d": 46,
-    "norm_cubic_meter_per_day": 46,
-    "count": 62,
-    "%": 63,
-    "mg/s": 64,
-    "milligram_per_sec": 64,
-    "mg/m": 65,
-    "milligram_per_min": 65,
-    "g/s": 66,
-    "gram_per_sec": 66,
-    "g/m": 67,
-    "gram_per_min": 67,
-    "g/h": 68,
-    "gram_per_hour": 68,
-    "kg/m": 69,
-    "kilogram_per_min": 69,
-    "kg/h": 70,
-    "kilogram_per_hour": 70,
-    "oz/s": 71,
-    "ounce_per_sec": 71,
-    "oz/m": 72,
-    "ounce_per_min": 72,
-    "lb/m": 73,
-    "pound_per_min": 73,
-    "lb/h": 74,
-    "pound_per_hour": 74,
-    "SμL": 2,
-    "std_microliter": 2,
-    "SmL": 3,
-    "std_milliliter": 3,
-    "SL": 4,
-    "std_liter": 4,
-    "Scm3": 6,
-    "std_cubic_cm": 6,
-    "Sm3": 7,
-    "std_cubic_meter": 7,
-    "Sin3": 8,
-    "std_cubic_inch": 8,
-    "Sft3": 9,
-    "std_cubic_foot": 9,
-    "kSft3": 10,
-    "std_1000_cubic_foot": 10,
-    "NμL": 32,
-    "normal_microliter": 32,
-    "NmL": 33,
-    "normal_milliliter": 33,
-    "NL": 34,
-    "normal_liter": 34,
-    "Ncm3": 36,
-    "normal_cubic_cm": 36,
-    "Nm3": 37,
-    "normal_cubic_meter": 37,
-    "μL/m": 2,
-    "microliter_per_min": 2,
-    "mL/s": 3,
-    "milliliter_per_sec": 3,
-    "mL/m": 4,
-    "milliliter_per_min": 4,
-    "mL/h": 5,
-    "milliliter_per_hour": 5,
-    "L/s": 6,
-    "liter_per_sec": 6,
-    "LPM": 7,
-    "liter_per_min": 7,
-    "L/h": 8,
-    "liter_per_hour": 8,
-    "GPM": 9,
-    "gallon_per_min": 9,
-    "GPH": 10,
-    "gallon_per_hour": 10,
-    "CCS": 11,
-    "cubic_cm_per_sec": 11,
-    "CCM": 12,
-    "cubic_cm_per_min": 12,
-    "cm3/h": 13,
-    "cubic_cm_per_hour": 13,
-    "m3/m": 14,
-    "cubic_meter_per_min": 14,
-    "m3/h": 15,
-    "cubic_meter_per_hour": 15,
-    "m3/d": 16,
-    "cubic_meter_per_day": 16,
-    "in3/m": 17,
-    "cubic_inch_per_min": 17,
-    "CFM": 18,
-    "cubic_foot_per_min": 18,
-    "CFH": 19,
-    "cubic_foot_per_hour": 19,
-    "CFD": 21,
-    "cubic_foot_per_day": 21,
-    "μL": 2,
-    "microliter": 2,
-    "mL": 3,
-    "milliliter": 3,
-    "L": 4,
-    "liter": 4,
-    "GAL": 5,
-    "gallon": 5,
-    "cm3": 6,
-    "cubic_cm": 6,
-    "m3": 7,
-    "cubic_meter": 7,
-    "in3": 8,
-    "cubic_inch": 8,
-    "ft3": 9,
-    "cubic_foot": 9,
-    "μP": 61,
-    "micropoise": 61,
-    "Pa": 2,
-    "pascal": 2,
-    "hPa": 3,
-    "hectopascal": 3,
-    "kPa": 4,
-    "kilopascal": 4,
-    "MPa": 5,
-    "megapascal": 5,
-    "mbar": 6,
-    "millibar": 6,
-    "bar": 7,
-    "g/cm2": 8,
-    "gram_per_square_cm": 8,
-    "kg/cm2": 9,
-    "kilogram_per_square_cm": 9,
-    "PSI": 10,
-    "pound_per_square_inch": 10,
-    "PSF": 11,
-    "pound_per_square_foot": 11,
-    "mTorr": 12,
-    "millitorr": 12,
-    "torr": 13,
-    "mmHg": 14,
-    "millimeter_of_mercury": 14,
-    "inHg": 15,
-    "inch_of_mercury": 15,
-    "mmH2O": 16,
-    "millimeter_of_water": 16,
-    "millimeter_of_water_@_60F": 17,
-    "cmH2O": 18,
-    "centimeter_of_water": 18,
-    "centimeter_of_water_@_60F": 19,
-    "inH2O": 20,
-    "inch_of_water": 20,
-    "inch_of_water_@_60F": 21,
-    "atm": 22,
-    "atmosphere": 22,
-    "V": 61,
-    "volt": 61,
-    "C": 2,
-    "Celsius": 2,
-    "F": 3,
-    "Fahrenheit": 3,
-    "K": 4,
-    "Kelvin": 4,
-    "Ra": 5,
-    "Rankine": 5,
-    "h:m:s": 2,
-    "hours:minutes:seconds": 2,
-    "ms": 3,
-    "millisecond": 3,
-    "s": 4,
-    "second": 4,
-    "m": 5,
-    "minute": 5,
-    "h": 6,
-    "hour": 6,
-    "d": 7,
-    "day": 7,
-}
+with open('codes.json', 'r') as f:
+    codes = json.load(f)
+statistics = codes["statistics"][0]
+units = codes["units"][0]
+gases = codes["gases"][0]
 
-gases = {
-    "Air": 0,
-    "Argon": 1,
-    "Ar": 1,
-    "Methane": 2,
-    "CH4": 2,
-    "Carbon_Monoxide": 3,
-    "CO": 3,
-    "Carbon_Dioxide": 4,
-    "CO2": 4,
-    "Ethane": 5,
-    "C2H6": 5,
-    "Hydrogen": 6,
-    "H2": 6,
-    "Helium": 7,
-    "He": 7,
-    "Nitrogen": 8,
-    "N2": 8,
-    "Nitrous_Oxide": 9,
-    "N2O": 9,
-    "Neon": 10,
-    "Ne": 10,
-    "Oxygen": 11,
-    "O2": 11,
-    "Propane": 12,
-    "C3H8": 12,
-    "Butane": 13,
-    "C4H10": 13,
-    "Acetylene": 14,
-    "C2H2": 14,
-    "Ethylene": 15,
-    "C2H4": 15,
-    "Isobutane": 16,
-    "i-C4H10": 16,
-    "Krypton": 17,
-    "Kr": 17,
-    "Xenon": 18,
-    "Xe": 18,
-    "Sulfur_Hexafluoride": 19,
-    "SF6": 19,
-    "25%_CO2,_75%_Ar": 20,
-    "C-25": 20,
-    "10%_CO2,_90%_Ar": 21,
-    "C-10": 21,
-    "8%_CO2,_92%_Ar": 22,
-    "C-8": 22,
-    "2%_CO2,_98%_Ar": 23,
-    "C-2": 23,
-    "75%_CO2,_25%_Ar": 24,
-    "C-75": 24,
-    "25%_He,_75%_Ar": 25,
-    "He-25": 25,
-    "75%_He,_25%_Ar": 26,
-    "He-75": 26,
-    "90%_He,_7.5%_Ar,_2.5%_CO2": 27,
-    "A1025": 27,
-    "Stargon_CS": 28,
-    "Star29": 28,
-    "5%_CH4,_95%_Ar": 29,
-    "P-5": 29,
-    "Nitric_Oxide": 30,
-    "NO": 30,
-    "Nitrogen_Trifluoride": 31,
-    "NF3": 31,
-    "Ammonia": 32,
-    "NH3": 32,
-    "Chlorine": 33,
-    "Cl2": 33,
-    "Hydrogen_Sulphide": 34,
-    "H2S": 34,
-    "Sulfur_Dioxide": 35,
-    "SO2": 35,
-    "Propylene": 36,
-    "C3H6": 36,
-    "1-Butylene": 80,
-    "1Butene": 80,
-    "Cis-Butene": 81,
-    "cButene": 81,
-    "Isobutene": 82,
-    "iButen": 82,
-    "Trans-2-Butene": 83,
-    "tButen": 83,
-    "Carbonyl_Sulfide": 84,
-    "COS": 84,
-    "Dimethylether": 85,
-    "C2H6O": 85,
-    "DMES": 85,
-    "Silane": 86,
-    "SiH4": 86,
-    "Trichlorofluoromethane": 100,
-    "CCl3F": 100,
-    "R-11": 100,
-    "Chloroppentafluoroethane": 101,
-    "C2ClF5": 101,
-    "R-115": 101,
-    "Hexafluoroethane": 102,
-    "C2F6": 102,
-    "R-116": 102,
-    "Chlorotetrafluoroethane": 103,
-    "C2HClF4": 103,
-    "R-124": 103,
-    "Pentafluoroethane": 104,
-    "CF3CHF2": 104,
-    "R-125": 104,
-    "Tetrafluoroethane": 105,
-    "CH2FCF3": 105,
-    "R-134A": 105,
-    "Tetrafluoromethane": 106,
-    "CF4": 106,
-    "R-14": 106,
-    "Chlorodifluoroethane": 107,
-    "CH3CClF2": 107,
-    "R-142B": 107,
-    "Trifluoroethane": 108,
-    "C2H3F3": 108,
-    "R-143A": 108,
-    "Difluoroethane": 109,
-    "C2H4F2": 109,
-    "R-152A": 109,
-    "Difluoromonochloromethane": 110,
-    "CHClF2": 110,
-    "R-22": 110,
-    "Trifluoromethane": 111,
-    "CHF3": 111,
-    "R-23": 111,
-    "Difluoromethane": 112,
-    "CH2F2": 112,
-    "R-32": 112,
-    "Octafluorocyclobutane": 113,
-    "C4F8": 113,
-    "R-318": 113,
-    "44%_R-125,_4%_R-134A,_52%_R-143A": 114,
-    "R-404A": 114,
-    "23%_R-32,_25%_R-125,_52%_R-143A": 115,
-    "R-407C": 115,
-    "50%_R-32,_50_R-125": 116,
-    "R-410A": 116,
-    "50%_R-125,_50%_R-143A": 117,
-    "15%_CO2,_85%_Ar": 140,
-    "C-15": 140,
-    "20%_CO2,_80%_Ar": 141,
-    "C-20": 141,
-    "50%_CO2,_50%_Ar": 142,
-    "C-50": 142,
-    "50%_He,_50%_Ar": 143,
-    "He-50": 143,
-    "90%_He,_10%_Ar": 144,
-    "He-90": 144,
-    "5%_CH4,_95%_CO2": 145,
-    "Bio5M": 145,
-    "10_CH4,_90%_CO2": 146,
-    "Bio10M": 146,
-    "15%_CH4,_85%_CO2": 147,
-    "Bio15M": 147,
-    "20%_CH4,_80%_CO2": 148,
-    "Bio20M": 148,
-    "25%_CH4,_75%_CO2": 149,
-    "Bio25M": 149,
-    "30%_CH4,_70%_CO2": 150,
-    "Bio30M": 150,
-    "35%_CH4,_65%_CO2": 151,
-    "Bio35M": 151,
-    "40%_CH4,_60%_CO2": 152,
-    "Bio40M": 152,
-    "45%_CH4,_55%_CO2": 153,
-    "Bio45M": 153,
-    "50%_CH4,_50%_CO2": 154,
-    "Bio50M": 154,
-    "55%_CH4,_45%_CO2": 155,
-    "Bio55M": 155,
-    "60%_CH4,_40%_CO2": 156,
-    "Bio60M": 156,
-    "65%_CH4,_35%_CO2": 157,
-    "Bio65M": 157,
-    "70%_CH4,_30%_CO2": 158,
-    "Bio70M": 158,
-    "75%_CH4,_25%_CO2": 159,
-    "Bio75M": 159,
-    "80%_CH4,_20%_CO2": 160,
-    "Bio80M": 160,
-    "85%_CH4,_15%_CO2": 161,
-    "Bio85M": 161,
-    "90%_CH4,_10%_CO2": 162,
-    "Bio90M": 162,
-    "95%_CH4,_5%_CO2": 163,
-    "Bio95M": 163,
-    "32%_O2,_68%_N2": 164,
-    "EAN-32": 164,
-    "36%_O2,_64%_N2": 165,
-    "EAN-36": 165,
-    "40%_O2,_60%_N2": 166,
-    "EAN-40": 166,
-    "20%_O2,_80%_He": 167,
-    "HeOx20": 167,
-    "21%_O2,_79%_He": 168,
-    "HeOx21": 168,
-    "30%_O2,_70%_He": 169,
-    "HeOx30": 169,
-    "40%_O2,_60%_He": 170,
-    "HeOx40": 170,
-    "50%_O2,_50%_He": 171,
-    "HeOx50": 171,
-    "60%_O2,_40%_He": 172,
-    "HeOx60": 172,
-    "80%_O2,_20%_He": 173,
-    "HeOx80": 173,
-    "99%_O2,_1%_He": 174,
-    "HeOx99": 174,
-    "Enriched_Air_40%_O2": 175,
-    "EA-40": 175,
-    "Enriched_Air_60%_O2": 176,
-    "EA-60": 176,
-    "Enriched_Air_80%_O2": 177,
-    "EA-80": 177,
-    "Metab": 178,
-    "Metabolic_Exhalant": 178,
-    "16%_O2,_78.04%_N2,_5%_CO2,_0.96%_Ar": 178,
-    "4.5%_CO2,_13.5%_N2,_82%_He": 179,
-    "LG-4.5": 179,
-    "6%_CO2,_14%_N2,_80%_He": 180,
-    "LG-6": 180,
-    "7%_CO2,_14%_N2,_79%_He": 181,
-    "LG-7": 181,
-    "9%_CO2,_15%_N2,_76%_He": 182,
-    "LG-9": 182,
-    "9%_Ne,_91%_He": 183,
-    "HeNe9": 183,
-    "9.4%_CO2,_19.25%_N2,_71.35%_He": 184,
-    "LG-9.4": 184,
-    "40%_H2,_29%_CO,_20%_CO2,_11%_CH4": 185,
-    "SynG-1": 185,
-    "64%_H2,_28%_CO,_1%_CO2,_7%_CH4": 186,
-    "SynG-2": 186,
-    "70%_H2,_4%_CO,_25%_CO2,_1%_CH4": 187,
-    "SynG-3": 187,
-    "83%_H2,_14%_CO,_3%_CH4": 188,
-    "SynG-4": 188,
-    "93%_CH4,_3%_C2H6,_1%_C3H8,_2%_N2,_1%_CO2": 189,
-    "NatG-1": 189,
-    "95%_CH4,_3%_C2H6,_1%_N2,_1%_CO2": 190,
-    "NatG-2": 190,
-    "95.2%_CH4,_2.5%_C2H6,_0.2%_C3H8,_0.1%_C4H10,_1.3%_N2,_0.7%_CO2": 191,
-    "NatG-3": 191,
-    "50%_H2,_35%_CH4,_10%_CO,_5%_C2H4": 192,
-    "CoalG": 192,
-    "75%_H2,_25%_N2": 193,
-    "Endo": 193,
-    "66.67%_H2,_33.33%_O2": 194,
-    "HHO": 194,
-    "LPG:_96.1%_C3H8,_1.5%_C2H6,_0.4%_C3H6,_1.9%_n-C4H10": 195,
-    "HD-5": 195,
-    "LPG:_85%_C3H8,_10%_C3H6,_5%_n-C4H10": 196,
-    "HD-10": 196,
-    "89%_O2,_7%_N2,_4%_Ar": 197,
-    "OCG-89": 197,
-    "93%_O2,_3%_N2,_4%_Ar": 198,
-    "OCG-93": 198,
-    "95%_O2,_1%_N2,_4%_Ar": 199,
-    "OCG-95": 199,
-    "2.5%_O2,_10.8%_CO2,_85.7%_N2,_1%_Ar": 200,
-    "FG-1": 200,
-    "2.9%_O2,_14%_CO2,_82.1%_N2,_1%_Ar": 201,
-    "FG-2": 201,
-    "3.7%_O2,_15%_CO2,_80.3%_N2,_1%_Ar": 202,
-    "FG-3": 202,
-    "7%_O2,_12%_CO2,_80%_N2,_1%_Ar": 203,
-    "FG-4": 203,
-    "10%_O2,_9.5%_CO2,_79.5%_N2,_1%_Ar": 204,
-    "FG-5": 204,
-    "13%_O2,_7%_CO2,_79%_N2,_1% Ar": 205,
-    "FG-6": 205,
-    "10%_CH4,_90%_Ar": 206,
-    "P-10": 206,
-    "Deuterium": 210,
-    "D-2": 210,
-}
-
-loop_var = {
-    34: "Abs_Press",
-    345: "2nd_Abs_Press",
-    39: "Press_Diff",
-    361: "2nd_Press_Diff",
-    38: "Gauge_Press",
-    353: "2nd_Gauge_Press",
-    37: "Mass_Flow",
-    36: "Vol_Flow",
-}
-
-
-async def new_device(port: str, id: str = "A", **kwargs: Any) -> Device:
+async def new_device(port: str, id: str = "A", **kwargs: Any):
     """
     Creates a new device. Chooses appropriate device based on characteristics.
 
@@ -693,8 +79,8 @@ class Device(ABC):
         self._device = device
         self._id = id
         self._dev_info = dev_info
-        self._df_format = None
         self._df_units = None
+        self._df_format = None
 
     async def poll(self) -> dict:
         """
@@ -703,28 +89,43 @@ class Device(ABC):
         Returns:
             dict: The current value of the device.
         """
+        # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
-            await self.get_df_format()  # Gets the format of the dataframe if it is not already known
+            await self.get_df_format()
         ret = await self._device._write_readline(self._id)
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
+    
+    async def read(self):
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
+        ret = await self._device._readline(self._id)
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
 
-    async def request(self, stats: list = [], time: str = "1") -> dict:
+    async def request(self, stats: list = [], time: int = 1) -> dict:
         """
         Gets specified values averaged over specified time.
         time in ms
 
         Args:
-            stats (list): The statistics to get.
-            time (str): The time to average over.
+            stats (list): The statistics to get. Maximum of 13 stats in one call. 
+            time (str): The time to average over in milliseconds.
 
         Returns:
             dict: The requested statistics.
         """
+        if len(stats) > 13:
+            print("Too many statistics requested, discarding excess")
+            stats = stats[:13]        
+        # Add 150 ms to the given time
         ret = await self._device._write_readline(
-            f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"
+            f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}" # add a parameter for time out here
         )
         ret = ret.split()
         for idx in range(len(ret)):
@@ -738,14 +139,14 @@ class Device(ABC):
         """
         Starts streaming data from device.
         """
-        await self._device._write_readline(f"{self._id}@ @")
+        await self._device._write(f"{self._id}@ @")
         return
 
     async def stop_stream(self, new_id: str = "A"):
         """
         Stops streaming data from device.
         """
-        await self._device._write_readline(f"@@ {new_id}")
+        await self._device._write(f"@@ {new_id}")
         self.id = new_id
         return
 
@@ -765,7 +166,11 @@ class Device(ABC):
         """
         Gets the list of avaiable gases for the device.
         """
-        ret = await self._device._write_readall(f"{self._id}??G*")
+        ret = {}
+        resp = await self._device._write_readall(f"{self._id}??G*")
+        for gas in resp:
+            gas = gas.split()
+            ret[gas[1]] = gas[2]
         return ret
 
     async def setpoint(self, value: str = "", unit: str = ""):
@@ -781,6 +186,9 @@ class Device(ABC):
         """
         Tares the absolute pressure of the device, zeros out the abs P reference point # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}PC")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -791,6 +199,9 @@ class Device(ABC):
         """
         Creates a no-flow reference point # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}V")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -801,6 +212,9 @@ class Device(ABC):
         """
         Tares the gauge pressure of the device, zeros out the diff P reference point # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}P")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -857,12 +271,12 @@ class Device(ABC):
 
     async def loop_control_var(self, var: str = ""):
         """
-        Sets the statistic the setpoint controls # Untested
+        Sets the statistic the setpoint controls
         """
-        for code in self.loop_var:
-            if self.loop_var[code] == var:
-                var = code
-        ret = await self._device._write_readline(f"{self._id}LV {var}")
+        # If the user did not specify setpoint, assume Setpt
+        if var[-6:] != "_Setpt":
+            var += "_Setpt"
+        ret = await self._device._write_readline(f"{self._id}LV {statistics[var]}")
         df = ["Unit ID", "Loop Var Val"]
         return dict(zip(df, ret.split()))
 
@@ -870,15 +284,15 @@ class Device(ABC):
         self, var: str = "", unit: str = "", min: str = "", max: str = ""
     ):
         """
-        Gets the statistic the setpoint controls
-        Sets the statistic the setpoint controls # Untested
+        Gets the control range of the statistic the setpoint controls
+        Sets the control range of the statistic the setpoint controls # Untested
         """
         ret = await self._device._write_readline(
             f"{self._id}LR {var} {unit} {min} {max}"
         )
         df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
-        ret[1] = self.loop_var[int(ret[1])]
+        ret[1] = next((code for code, value in statistics.items() if value == int(ret[1])), ret[1])
         return dict(zip(df, ret))
 
     async def max_ramp_rate(self, max: str = "", unit: str = ""):
@@ -920,6 +334,9 @@ class Device(ABC):
         Enables immediate setpoint on power-up # Untested
         val = 0 to disable start-up setpoint
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}SPUE {val}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -930,6 +347,9 @@ class Device(ABC):
         """
         Sets the overpressure limit of the device. # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}OPL {limit}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1011,6 +431,9 @@ class Device(ABC):
         """
         Sets data frame's format # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}FDF {format}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1028,14 +451,8 @@ class Device(ABC):
         Gets units for desired statistics
         Sets units for desired statistics # Untested
         """
-        if group.upper() == "Y" or group.upper() == "YES":
-            group = "1"
-        elif group.upper() == "N" or group.upper() == "NO":
-            group = "0"
-        if override.upper() == "Y" or override.upper() == "YES":
-            override = "1"
-        else:
-            override = "0"
+        group = "1" if group.upper() in ["Y", "YES"] else "0" if group.upper() in ["N", "NO"] else group
+        override = "1" if override.upper() in ["Y", "YES"] else ""
         ret = await self._device._write_readline(
             f"{self._id}DCU {statistics[statistic_value]} {group} {units[unit_val]} {override}"
         )
@@ -1087,10 +504,7 @@ class Device(ABC):
         Gets if device tares on power-up
         Sets if device tares on power-up
         """
-        if enable.upper() == "Y" or enable.upper() == "YES":
-            enable = "1"
-        elif enable.upper() == "N" or enable.upper() == "NO":
-            enable = "0"
+        enable = "1" if enable.upper() in ["Y", "YES"] else "0" if enable.upper() in ["N", "NO"] else enable
         ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
         df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
@@ -1231,6 +645,9 @@ class Device(ABC):
         """
         Disables buttons on front of the device.
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}L")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1300,6 +717,9 @@ class Device(ABC):
         """
         Disables buttons on front of the device.
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}U")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1406,6 +826,9 @@ class Device(ABC):
         """
         Returns totalizer count to zero and restarts timer. # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}T {totalizer}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1416,6 +839,9 @@ class Device(ABC):
         """
         Returns totalizer count to zero and restarts timer. # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}TP {totalizer}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1437,6 +863,9 @@ class Device(ABC):
         """
         Removes valve holds. # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}C")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1447,6 +876,9 @@ class Device(ABC):
         """
         Closes upstream valve, opens downstream valve 100% # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}E")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1457,6 +889,9 @@ class Device(ABC):
         """
         Hold valves at current position # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}HP")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1467,6 +902,9 @@ class Device(ABC):
         """
         Close all valves # Untested
         """
+        # Gets the format of the dataframe if it is not already known
+        if self._df_format is None:
+            await self.get_df_format()
         ret = await self._device._write_readline(f"{self._id}HC")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1526,12 +964,13 @@ class Device(ABC):
         """
         resp = {}
         flag = 0
+        reqs = []
         if isinstance(measurements, str):
             measurements = measurements.split()
         # Request
         for meas in measurements:
             if meas in statistics:
-                resp.update(await self.request([meas]))
+                reqs.append(meas)
             elif meas.upper() == "GAS":
                 resp.update(await self.gas())
             elif meas.upper() in ["SETPOINT", "STPT"]:
@@ -1539,6 +978,10 @@ class Device(ABC):
             elif flag == 0:
                 resp.update(await self.poll())
                 flag = 1
+        i = 0
+        while i*13 < len(reqs):
+            resp.update(await self.request(reqs[13*i:13+13*i]))
+            i += 1
         return resp
 
     async def set(self, meas: str, param1: str, param2: str) -> dict:
@@ -1546,12 +989,14 @@ class Device(ABC):
         Gets the value of a measurement from the device
         """
         resp = {}
-        # Set gas - Param1 = value, Param2 = save
         upper_meas = str(meas).upper()
+        # Set gas - Param1 = value, Param2 = save
         if upper_meas == "GAS":
             resp.update(await self.gas(str(param1), str(param2)))
+        # Set setpoint - Param1 = value, Param2 = unit
         elif upper_meas in ["SETPOINT", "STPT"]:
             resp.update(await self.setpoint(str(param1), str(param2)))
+        # Set gas - Param1 = statistic
         elif upper_meas in ["LOOP", "LOOP CTRL"]:
             resp.update(await self.loop_control_var(str(param1)))
         return resp
