@@ -122,9 +122,9 @@ class Device(ABC):
         """
         if len(stats) > 13:
             print("Too many statistics requested, discarding excess")
-            stats = stats[:13]        
-        # Add 150 ms to the given time
+            stats = stats[:13]
         ret = await self._device._write_readline(
+            # Add 150 ms to the given time
             f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}" # add a parameter for time out here
         )
         ret = ret.split()
@@ -146,9 +146,9 @@ class Device(ABC):
         """
         Stops streaming data from device.
         """
-        await self._device._write(f"@@ {new_id}")
+        ret = await self._device._write(f"@@ {new_id}")
         self.id = new_id
-        return
+        return ret
 
     async def gas(self, gas: str = "", save: str = ""):
         """
@@ -625,7 +625,8 @@ class Device(ABC):
 
     async def change_unit_id(self, new_id: str = ""):
         """
-        Sets the unit ID of the device. # Untested
+        Sets the unit ID of the device. 
+        **This changes the ID, but the device stops responding**
         """
         ret = await self._device._write_readline(f"{self._id}@ {new_id}")
         self.id = new_id
