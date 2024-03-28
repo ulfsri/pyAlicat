@@ -1,5 +1,6 @@
 from typing import Any, Union
 
+import json
 import re
 from abc import ABC
 
@@ -7,15 +8,14 @@ import trio
 from comm import CommDevice, SerialDevice
 from trio import run
 
-import json
-
 # from .device import Device
 
-with open('codes.json', 'r') as f:
+with open("codes.json", "r") as f:
     codes = json.load(f)
 statistics = codes["statistics"][0]
 units = codes["units"][0]
 gases = codes["gases"][0]
+
 
 async def new_device(port: str, id: str = "A", **kwargs: Any):
     """
@@ -97,7 +97,7 @@ class Device(ABC):
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
-    
+
     async def read(self):
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -114,7 +114,7 @@ class Device(ABC):
         time in ms
 
         Args:
-            stats (list): The statistics to get. Maximum of 13 stats in one call. 
+            stats (list): The statistics to get. Maximum of 13 stats in one call.
             time (str): The time to average over in milliseconds.
 
         Returns:
@@ -125,7 +125,7 @@ class Device(ABC):
             stats = stats[:13]
         ret = await self._device._write_readline(
             # Add 150 ms to the given time
-            f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}" # add a parameter for time out here
+            f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"  # add a parameter for time out here
         )
         ret = ret.split()
         for idx in range(len(ret)):
@@ -137,7 +137,7 @@ class Device(ABC):
 
     async def start_stream(self) -> None:
         """
-        Starts streaming data from device. 
+        Starts streaming data from device.
         """
         await self._device._write(f"{self._id}@ @")
         return
@@ -156,14 +156,18 @@ class Device(ABC):
         Sets the gas of the device.
 
         Args:
-            gas (str): Name of the gas to set the device. 
+            gas (str): Name of the gas to set the device.
             save (str): Set to y/n. If yes, changes default on power-up
 
         Returns:
             dict: Reports the gas and its code and names.
         """
         gas = gases.get(gas, "")
-        save = "1" if save.upper() in ["Y", "YES"] else "0" if save.upper() in ["N", "NO"] else save
+        save = (
+            "1"
+            if save.upper() in ["Y", "YES"]
+            else "0" if save.upper() in ["N", "NO"] else save
+        )
         if not gas:
             save = ""
         ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
@@ -188,7 +192,7 @@ class Device(ABC):
         """
         Gets the setpoint of the device.
         Sets the setpoint of the device.
-        
+
         Args:
             value (int): Desired setpoint value for the controller.
                          Set to 0 to close valve
@@ -205,7 +209,7 @@ class Device(ABC):
         """
         Tares the absolute pressure of the device, zeros out the abs P reference point # Untested
            Should only be used when no flow and not pressurized line.
-        
+
         Returns:
             dict: Dataframe with zero Abs Pressure
         """
@@ -222,7 +226,7 @@ class Device(ABC):
         """
         Creates a no-flow reference point # Untested
            Should only be used when no flow and at operation pressure.
-        
+
         Returns:
             dict: Dataframe with zero flow.
         """
@@ -239,7 +243,7 @@ class Device(ABC):
         """
         Tares the gauge pressure of the device, zeros out the diff P reference point # Untested
            Should only be used when no flow and at operation pressure.
-        
+
         Returns:
             dict: Dataframe with zero guage pressure.
         """
@@ -253,15 +257,15 @@ class Device(ABC):
         return dict(zip(self._df_format, df))
 
     async def batch(
-        self, totalizer:  int = 1, batch_vol: str = "", unit: str = ""
+        self, totalizer: int = 1, batch_vol: str = "", unit: str = ""
     ) -> dict:
         """
         Directs controller to flow a set amount then close the valve.   # Untested
         Must accept a totalizer value. Defaults to totalizer 1.
         set batch volume to size of desired flow. Set to 0 to disable batch.
-        
+
         Args:
-            totalizer (int): Totalizer (1 or 2) to use/query. 
+            totalizer (int): Totalizer (1 or 2) to use/query.
             batch_vol (int): Size of desired batch flow
                 Set to 0 to disable batch
             unit (str): Volume units for flow
@@ -279,7 +283,7 @@ class Device(ABC):
         """
         Gets the range the controller allows for drift around setpoint
         Sets the range the controller allows for drift around setpoint # Untested
-        
+
         Args:
             save (str): Set to y/n. If yes, keeps limit on power-up
             limit (float): Set setpoint units
@@ -287,7 +291,11 @@ class Device(ABC):
         Returns:
             dict: Reports deadband with units
         """
-        save = "1" if save.upper() in ["Y", "YES"] else "0" if save.upper() in ["N", "NO"] else save
+        save = (
+            "1"
+            if save.upper() in ["Y", "YES"]
+            else "0" if save.upper() in ["N", "NO"] else save
+        )
         ret = await self._device._write_readline(f"{self._id}LCDB {save} {limit}")
         df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         return dict(zip(df, ret.split()))
@@ -296,14 +304,18 @@ class Device(ABC):
         """
         Gets the reaction the controller has for values around setpoint
         Sets the reaction the controller has for values around setpoint # Untested
-        
+
         Args:
             mode (str): 1 for Hold Valve at Current, 2 for close valve
-        
+
         Returns:
             dict: Reports mode
         """
-        mode = "1" if mode.upper() in ["HOLD", "CURRENT"] else "0" if mode.upper() in ["CLOSE"] else mode
+        mode = (
+            "1"
+            if mode.upper() in ["HOLD", "CURRENT"]
+            else "0" if mode.upper() in ["CLOSE"] else mode
+        )
         ret = await self._device._write_readline(f"{self._id}LCDM {mode}")
         df = ["Unit ID", "Mode"]
         ret = ret.split()
@@ -316,14 +328,18 @@ class Device(ABC):
         Gets the control algorithm the controller uses
         Sets the control algorithm the controller uses # Untested
         algorithm 1 = PD/PDF, algorithm 2 = PD2I
-        
+
         Args:
             algo (str): Algorithm used for loop control
-        
+
         Returns:
             dict: Reports algorithm
         """
-        algo = "2" if algo.upper() in ["PD21"] else "0" if algo.upper() in ["PD", "PDF", "PD/PDF"] else mode
+        algo = (
+            "2"
+            if algo.upper() in ["PD21"]
+            else "0" if algo.upper() in ["PD", "PDF", "PD/PDF"] else mode
+        )
         ret = await self._device._write_readline(f"{self._id}LCA {algorithm}")
         df = ["Unit ID", "Algorithm"]
         ret = ret.split()
@@ -334,10 +350,10 @@ class Device(ABC):
     async def loop_control_var(self, var: str = "") -> dict:
         """
         Sets the statistic the setpoint controls
-        
+
         Args:
             var (str): Desired statistic
-        
+
         Returns:
             dict: Reports new loop variable
         """
@@ -347,7 +363,9 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}LV {statistics[var]}")
         df = ["Unit ID", "Loop Var Val"]
         ret = ret.split()
-        ret[1] = next((code for code, value in statistics.items() if value == int(ret[1])), ret[1])
+        ret[1] = next(
+            (code for code, value in statistics.items() if value == int(ret[1])), ret[1]
+        )
         return dict(zip(df, ret))
 
     async def loop_control_setpoint(
@@ -356,13 +374,13 @@ class Device(ABC):
         """
         Gets the control range of the statistic the setpoint controls
         Sets the control range of the statistic the setpoint controls # Untested
-        
+
         Args:
             var (str): Desired statistic to be queried/modified
             unit (str): Units of var
             min (int): Min allowable setpoint
             max (int): Max allowable setpoint
-        
+
         Returns:
             dict: Reports loop variable, units, min, and max
         """
@@ -371,19 +389,21 @@ class Device(ABC):
         )
         df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
-        ret[1] = next((code for code, value in statistics.items() if value == int(ret[1])), ret[1])
+        ret[1] = next(
+            (code for code, value in statistics.items() if value == int(ret[1])), ret[1]
+        )
         return dict(zip(df, ret))
 
     async def max_ramp_rate(self, max: int = "", unit: str = "") -> dict:
         """
         Gets how fast controller moves to new setpoint
         Sets how fast controller moves to new setpoint # Untested
-                
+
         Args:
             max (int): Indicates step size for movement to setpoint
                 max = 0 to disable ramping (still must include unit)
             unit (str): unit for rate
-        
+
         Returns:
             dict: Reports max ramp rate with unit
         """
@@ -391,41 +411,53 @@ class Device(ABC):
         df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         return dict(zip(df, ret.split()))
 
-    async def pdf_gains(self, save: str = "", p_gain: float = "", d_gain: float = "") -> dict:
+    async def pdf_gains(
+        self, save: str = "", p_gain: float = "", d_gain: float = ""
+    ) -> dict:
         """
         Gets the proportional and intregral gains of the PD/PDF controller
         Sets the proportional and intregral gains of the PD/PDF controller # Untested
-        
+
         Args:
             save (str): Set to y/n. If yes, keeps gains on power-up
             p_gain (float): Integral gain. Range is 0 to 65535
             d_gain (float): Proportional gain. Range is 0 to 65535
-        
+
         Returns:
             dict: Reports P and D gains
         """
-        save = "0 1" if save.upper() in ["Y", "YES"] else "0 0" if save.upper() in ["N", "NO"] else save
+        save = (
+            "0 1"
+            if save.upper() in ["Y", "YES"]
+            else "0 0" if save.upper() in ["N", "NO"] else save
+        )
         ret = await self._device._write_readline(
             f"{self._id}LCGD {save} {p_gain} {d_gain}"
         )
         df = ["Unit ID", "P  Gain", "D Gain"]
         return dict(zip(df, ret.split()))
 
-    async def pd2i_gains(self, save: str = "", p_gain: float = "", i_gain: float = "", d_gain: float = "") -> dict:
+    async def pd2i_gains(
+        self, save: str = "", p_gain: float = "", i_gain: float = "", d_gain: float = ""
+    ) -> dict:
         """
         Gets the proportional, intregral, and derivative gains of the PD2I controller
         Sets the proportional, intregral, and derivative gains of the PD2I controller # Untested
-        
+
         Args:
             save (str): Set to y/n. If yes, keeps gains on power-up
             p_gain (float): Integral gain. Range is 0 to 65535
             i_gain (float): Integral gain. Range is 0 to 65535
             d_gain (float): Proportional gain. Range is 0 to 65535. Optional.
-        
+
         Returns:
             dict: Reports P, I, and D gains
         """
-        save = "0 1" if save.upper() in ["Y", "YES"] else "0 0" if save.upper() in ["N", "NO"] else save
+        save = (
+            "0 1"
+            if save.upper() in ["Y", "YES"]
+            else "0 0" if save.upper() in ["N", "NO"] else save
+        )
         ret = await self._device._write_readline(
             f"{self._id} LCG {save} {p_gain} {i_gain} {d_gain}"
         )
@@ -435,11 +467,11 @@ class Device(ABC):
     async def power_up_setpoint(self, val: float = "") -> dict:
         """
         Enables immediate setpoint on power-up # Untested
-        
+
         Args:
             val (float): Setpoint on power-up
                 0 to disable start-up setpoint
-        
+
         Returns:
             dict: Dataframe with current (not power-up) setpoint
         """
@@ -455,11 +487,11 @@ class Device(ABC):
     async def overpressure(self, limit: str = "") -> dict:
         """
         Sets the overpressure limit of the device. Flow is stopped if pressure exceeds # Untested
-        
+
         Args:
             limit (float): Upper limit of pressure
                 Disabled if above pressure full scale or <= 0
-        
+
         Returns:
             dict: Dataframe
         """
@@ -478,20 +510,36 @@ class Device(ABC):
         """
         Gets the ramp settings of the device.
         Sets the ramp settings of the device. # Untested
-        
+
         Args:
             up (str): When setpoint is made higher. Disabled = immediate move. Enabled = Follow ramp rate
             down (str): When setpoint is made lower. Disabled = immediate move. Enabled = Follow ramp rate
             zero (str): When setpoint is zero. Disabled = immediate move. Enabled = Follow ramp rate
             power_up (str): To setpoint on power-up. Disabled = immediate move. Enabled = Follow ramp rate
-        
+
         Returns:
             dict: Dataframe
         """
-        up = "1" if up.upper() in ["Y", "YES"] else "0" if up.upper() in ["N", "NO"] else up
-        down = "1" if down.upper() in ["Y", "YES"] else "0" if down.upper() in ["N", "NO"] else down
-        zero = "1" if zero.upper() in ["Y", "YES"] else "0" if zero.upper() in ["N", "NO"] else zero
-        power_up = "1" if power_up.upper() in ["Y", "YES"] else "0" if power_up.upper() in ["N", "NO"] else power_up
+        up = (
+            "1"
+            if up.upper() in ["Y", "YES"]
+            else "0" if up.upper() in ["N", "NO"] else up
+        )
+        down = (
+            "1"
+            if down.upper() in ["Y", "YES"]
+            else "0" if down.upper() in ["N", "NO"] else down
+        )
+        zero = (
+            "1"
+            if zero.upper() in ["Y", "YES"]
+            else "0" if zero.upper() in ["N", "NO"] else zero
+        )
+        power_up = (
+            "1"
+            if power_up.upper() in ["Y", "YES"]
+            else "0" if power_up.upper() in ["N", "NO"] else power_up
+        )
         ret = await self._device._write_readline(
             f"{self._id} LSRC {up} {down} {zero} {power_up}"
         )
@@ -505,13 +553,13 @@ class Device(ABC):
         """
         Gets how the setpoint is given to the controller
         Sets how the setpoint is given to the controller # Untested
-        
+
         Args:
             mode (str):
                 A for Analog
                 S for Display or Serial Communications. Saves and restores setpoint on pwower-up
                 D for Display or Serial Communications. Does not save.
-        
+
         Returns:
             dict: Setpoint source mode
         """
@@ -532,16 +580,20 @@ class Device(ABC):
         """
         Gets how much power driven to valve when first opened or considered closed
         Sets how much power driven to valve when first opened or considered closed # Untested
-        
+
         Args:
             save (str): y/n for if offset % is saved on power cycle
             initial_offset (float): 0-100% of total electrcity to first open closed valve
             closed_offset (float): 0-100% of total electrcity for device to consider valve closed
-        
+
         Returns:
             dict: Offset values
         """
-        save = "0 1" if save.upper() in ["Y", "YES"] else "0 0" if save.upper() in ["N", "NO"] else save
+        save = (
+            "0 1"
+            if save.upper() in ["Y", "YES"]
+            else "0 0" if save.upper() in ["N", "NO"] else save
+        )
         ret = await self._device._write_readline(
             f"{self._id}LCVO {save} {initial_offset} {closed_offset}"
         )
@@ -553,14 +605,18 @@ class Device(ABC):
         """
         Gets how controller reacts to 0 Pressure setpoint
         Sets how controller reacts to 0 Pressure setpoint # Untested
-        
+
         Args:
             enable (str): If disabled, valve opens/closes completely. If enabled, uses close-loop
-        
+
         Returns:
             dict: If active control is active or not
         """
-        enable = "1" if enable.upper() in ["Y", "YES"] else "0" if enable.upper() in ["N", "NO"] else enable
+        enable = (
+            "1"
+            if enable.upper() in ["Y", "YES"]
+            else "0" if enable.upper() in ["N", "NO"] else enable
+        )
         ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
         df = ["Unit ID", "Active Ctrl"]
         ret = ret.split()
@@ -572,15 +628,19 @@ class Device(ABC):
         """
         Gets if the controller auto tares
         Sets if the controller auto tares # Untested
-        
+
         Args:
             enable (str): Enable or disable auto tare
             delay (float): amount of time in seconds waited until tare begins 0.1 to 25.5
-        
+
         Returns:
             dict: If tare is active or not and delay length (s)
         """
-        enable = "1" if enable.upper() in ["Y", "YES"] else "0" if enable.upper() in ["N", "NO"] else enable
+        enable = (
+            "1"
+            if enable.upper() in ["Y", "YES"]
+            else "0" if enable.upper() in ["N", "NO"] else enable
+        )
         ret = await self._device._write_readline(f"{self._id}ZCA {enable} {delay}")
         df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
@@ -591,13 +651,13 @@ class Device(ABC):
     async def configure_data_frame(self, format: str = "") -> dict:
         """
         Sets data frame's format # Untested
-        
+
         Args:
             format (str):
                 '0' for default, values have 5 digits, setpoint and totalizer unsigned
                 '1' for setpoint and totalizer signed (+ or -)
                 '2' for signed setpoint and totalizer, number digits based on resolution
-            
+
         Returns:
             dict: Data Frame in new format
         """
@@ -620,17 +680,21 @@ class Device(ABC):
         """
         Gets units for desired statistics
         Sets units for desired statistics # Untested
-        
+
         Args:
             statistic_value (str): Desired statistic to get/set unit for
             group (str): If setting unit, sets to entire group statisitc is in
             unit (str): Sets unit for statistic
             override (str): Overwrites any special rules for group changes
-            
+
         Returns:
             dict: Responds with unit
         """
-        group = "1" if group.upper() in ["Y", "YES"] else "0" if group.upper() in ["N", "NO"] else group
+        group = (
+            "1"
+            if group.upper() in ["Y", "YES"]
+            else "0" if group.upper() in ["N", "NO"] else group
+        )
         override = "1" if override.upper() in ["Y", "YES"] else ""
         ret = await self._device._write_readline(
             f"{self._id}DCU {statistics[statistic_value]} {group} {units[unit]} {override}"
@@ -647,11 +711,11 @@ class Device(ABC):
         """
         Gets average value of statistic
         Sets time statistic is averaged over # Untested
-        
+
         Args:
             stat_val (str): Desired statistic to get avgerage/set time
-            avg_time (float): Time in ms over which averages taken. 0 to 9999. 
-            
+            avg_time (float): Time in ms over which averages taken. 0 to 9999.
+
         Returns:
             dict: Responds value of queried average and avg time const
         """
@@ -677,11 +741,11 @@ class Device(ABC):
     async def full_scale_val(self, stat_val: str = "", unit: str = "") -> dict:
         """
         Gets measurement range of given statistic
-        
+
         Args:
             stat_val (str): Desired statistic to get range
             unit (str): Units of range. Defaults if left blank.
-            
+
         Returns:
             dict: Responds max value of statistic and units
         """
@@ -696,14 +760,18 @@ class Device(ABC):
         """
         Gets if device tares on power-up
         Sets if device tares on power-up
-        
+
         Args:
             enable (str): If Enabled, 0.25 second after sensors stable. Close loop delay, valves stay closed
-            
+
         Returns:
             dict: If tare is enabled
         """
-        enable = "1" if enable.upper() in ["Y", "YES"] else "0" if enable.upper() in ["N", "NO"] else enable
+        enable = (
+            "1"
+            if enable.upper() in ["Y", "YES"]
+            else "0" if enable.upper() in ["N", "NO"] else enable
+        )
         ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
         df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
@@ -714,24 +782,26 @@ class Device(ABC):
     async def data_frame(self) -> str:
         """
         Gets info about current data frame
-        
+
         Returns:
             str: table that outlines data frame format
         """
         ret = await self._device._write_readall(f"{self._id}??D*")
         return ret
 
-    async def stp_press(self, stp: str = "S", unit: str = "", press: float = "") -> dict:
+    async def stp_press(
+        self, stp: str = "S", unit: str = "", press: float = ""
+    ) -> dict:
         """
         Gets pressure reference point.
         Sets pressure reference point. # Untested
         To get Normal pressure reference point, set stp to N
-        
+
         Args:
             stp (str): S for standard pressure, N for normal
             unit (str): Pressure units
             press (float): Numeric value of new desired pressure reference point
-            
+
         Returns:
             dict: Current pressure reference point and units
         """
@@ -751,12 +821,12 @@ class Device(ABC):
         Gets temperature reference point.
         Sets temperature reference point. # Untested
         To get Normal pressure reference point, set stp to N
-        
+
         Args:
             stp (str): S for standard temperature, N for normal
             unit (str): Temperature units
             press (float): Numeric value of new desired temperature reference point
-            
+
         Returns:
             dict: Current temperature reference point and units
         """
@@ -775,12 +845,12 @@ class Device(ABC):
         """
         Gets the zero band of the device.
         Sets the zero band of the device. # Untested
-        
+
         Args:
             zb (float): % of full-scale readnigs process must exceed before device reports readings
                 0 to 6.38 value
                 0 to disable
-            
+
         Returns:
             dict: Returns current zero band as percent of full scale
         """
@@ -797,7 +867,7 @@ class Device(ABC):
         """
         Gets the source of the analog output.
         Sets the source of the analog output. # Untested
-        
+
         Args:
             primary (str): Primary of secondary analog output
             val (int): Statistic being tracked
@@ -805,7 +875,7 @@ class Device(ABC):
                 '1' to fix max possible output
                 Other for statistic
                 unit: Desired unit. Optional
-            
+
         Returns:
             dict: Statistic and units
         """
@@ -838,12 +908,12 @@ class Device(ABC):
         """
         Gets the baud rate of the device.
         Sets the baud rate of the device. # Untested
-        Ensure COM is connected. 
-        
+        Ensure COM is connected.
+
         Args:
            new_baud (int): Set to one of the following:
                2400, 4800, 9600, 19200, 38400, 57600, 115200
-            
+
         Returns:
             dict: Baud rate, either current or new
         """
@@ -859,10 +929,10 @@ class Device(ABC):
         """
         Gets the blinking state
         Blinks the device.
-        
+
         Args:
            dur (int): Duration devices flashes. 0 stops blinking. -1 to flash indefinitely.
-            
+
         Returns:
             dict: If the display is currently blinking
         """
@@ -877,12 +947,12 @@ class Device(ABC):
 
     async def change_unit_id(self, new_id: str = "") -> None:
         """
-        Sets the unit ID of the device. 
+        Sets the unit ID of the device.
         **This changes the ID, but the device stops responding**
-        
+
         Args:
            new_id (str): New ID. A-Z accepted
-            
+
         Returns:
             dict: If the display is currently blinking
         """
@@ -893,7 +963,7 @@ class Device(ABC):
     async def firmware_version(self) -> dict:
         """
         Gets the firmware version of the device.
-        
+
         Returns:
             dict:Current firmware vesion and its date of creation
         """
@@ -906,7 +976,7 @@ class Device(ABC):
     async def lock_display(self) -> dict:
         """
         Disables buttons on front of the device.
-        
+
         Returns:
             dict: Data frame with lock status enabled
         """
@@ -922,7 +992,7 @@ class Device(ABC):
     async def manufacturing_info(self) -> list:
         """
         Gets info about device
-        
+
         Returns:
             dict: Info on device, model, serial number, manufacturing, calibration, software
         """
@@ -933,10 +1003,10 @@ class Device(ABC):
         """
         Gets the remote tare value
         Sets the remote tare effect. # Untested
-        
+
         Args:
            actions (list): Actions to perform
-           
+
         Returns:
             dict: Total value of Active Actions
         """
@@ -959,7 +1029,7 @@ class Device(ABC):
         """
         Restores factory settings of the device. # Untested
         Removes any calibrations
-        
+
         Returns:
             Confirmation of restoration
         """
@@ -970,11 +1040,11 @@ class Device(ABC):
         """
         Gets the user data from the string is slot
         Sets the user data in slot to val. # Untested
-        
+
         Args:
            slot (int): Slot number, 0 to 3
            val (str): 32-char ASCII string. Must be encoded.
-           
+
         Returns:
             dict: Value in called slot (either new or read)
         """
@@ -992,10 +1062,10 @@ class Device(ABC):
         """
         Gets the streaming rate of the device.
         Sets the streaming rate of the device. # Untested
-        
+
         Args:
            dinterval (float): Streaming rate in ms between data frames
-           
+
         Returns:
             dict: Interval
         """
@@ -1007,7 +1077,7 @@ class Device(ABC):
     async def unlock_display(self) -> dict:
         """
         Disables buttons on front of the device.
-        
+
         Return:
             dict: Data Frame with LCK disabled
         """
@@ -1037,15 +1107,15 @@ class Device(ABC):
     ) -> dict:
         """
         Sets custom gas mixture. # Untested
-        
+
         Args:
            name (str): Name of custom mixture
            number (int): 236 to 255. Gas is saved to this number
-        
+
             n is the number (1 to 5) of the gas in the function call
            gas[n]P (float): Molar percent up to 2 decimals. Total percentages must sum to 100.00%
            gas[n]N (str): Name of gas in mixture
-           
+
         Returns:
             dict: Gas number of new mix and percentages and names of each constituent
         """
@@ -1072,10 +1142,10 @@ class Device(ABC):
     async def delete_gas_mix(self, gasN: str = "") -> dict:
         """
         Deletes custom gas mixture. # Untested
-        
+
         Args:
            gasN (str): Number of gas to delete
-           
+
         Returns:
             dict: Deleted gas' number
         """
@@ -1087,10 +1157,10 @@ class Device(ABC):
     async def query_gas_mix(self, gasN: int = ""):
         """
         Gets Percentages of gases in mixture. # Untested
-        
+
         Args:
            gasN (int): nNumber of custom gas to analyze
-        
+
         Returns:
             dict: Gas numbers and their percentages in mixture
         """
@@ -1124,14 +1194,14 @@ class Device(ABC):
     ):
         """
         Enables/Disables and Configures totalizer. # Untested
-        
+
         Args:
            totalizer (int): 1 or 2, which totalizer used
            flow_stat_val (str): Statistic to measure. Use -1 to not change statistic
            mode (int):
            num (int): Value 7 to 10. How many digits in totalizer.
-           dec (int): 0 to 9. How many digits after decimal. 
-           
+           dec (int): 0 to 9. How many digits after decimal.
+
         Returns:
             dict: COnfiguration of totalizer
         """
@@ -1155,12 +1225,12 @@ class Device(ABC):
     async def reset_totalizer(self, totalizer: int = 1) -> dict:
         """
         Returns totalizer count to zero and restarts timer. # Untested
-        
+
         Args:
            totalizer (int): 1 or 2, which totalizer used
-           
+
         Returns:
-            dict: Dataframe with totalizer set to zero. 
+            dict: Dataframe with totalizer set to zero.
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -1174,10 +1244,10 @@ class Device(ABC):
     async def reset_totalizer_peak(self, totalizer: int = 1) -> dict:
         """
         Returns totalizer count to zero and restarts timer. # Untested
-        
+
         Args:
            totalizer (int): 1 or 2, which totalizer used
-           
+
         Returns:
             dict: Dataframe
         """
@@ -1193,14 +1263,18 @@ class Device(ABC):
     async def save_totalizer(self, enable: str = ""):
         """
         Enables/disables saving totalizer values. If enabled, restore last saved totalizer on power-up
-        
+
         Args:
            enable (str): y/n
-           
+
         Returns:
             dict: Says if enabled or disabled
         """
-        enable = "1" if enable.upper() in ["Y", "YES"] else "0" if enable.upper() in ["N", "NO"] else enable
+        enable = (
+            "1"
+            if enable.upper() in ["Y", "YES"]
+            else "0" if enable.upper() in ["N", "NO"] else enable
+        )
         ret = await self._device._write_readline(f"{self._id}TCR {enable}")
         df = ["Unit ID", "Saving"]
         ret = ret.split()
@@ -1211,7 +1285,7 @@ class Device(ABC):
     async def canc_valve_hold(self):
         """
         Removes valve holds. # Untested
-                   
+
         Returns:
             dict: Dataframe
         """
@@ -1227,7 +1301,7 @@ class Device(ABC):
     async def exhaust(self):
         """
         Closes upstream valve, opens downstream valve 100% # Untested
-                   
+
         Returns:
             dict: Dataframe
         """
@@ -1243,7 +1317,7 @@ class Device(ABC):
     async def hold_valve(self):
         """
         Hold valves at current position # Untested
-                   
+
         Returns:
             dict: Dataframe
         """
@@ -1259,7 +1333,7 @@ class Device(ABC):
     async def hold_valve_closed(self):
         """
         Close all valves # Untested
-                   
+
         Returns:
             dict: Dataframe
         """
@@ -1275,7 +1349,7 @@ class Device(ABC):
     async def query_valve_drive_state(self):  # Why does this return 4 values?
         """
         Gets current percentage of total possible electricity to valve
-                   
+
         Returns:
             dict: Upstream valve, downstream valve, exhaust valve, fourth value
         """
@@ -1343,8 +1417,8 @@ class Device(ABC):
                 resp.update(await self.poll())
                 flag = 1
         i = 0
-        while i*13 < len(reqs):
-            resp.update(await self.request(reqs[13*i:13+13*i]))
+        while i * 13 < len(reqs):
+            resp.update(await self.request(reqs[13 * i : 13 + 13 * i]))
             i += 1
         return resp
 

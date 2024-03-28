@@ -185,7 +185,6 @@ class SerialDevice(CommDevice):
         else:
             with trio.move_on_after(self.timeout / 1000):
                 await self.ser_devc.send_all(command.encode("ascii") + self.eol)
-            
 
     async def _readline(self) -> str:
         """
