@@ -1,12 +1,10 @@
-from typing import Any, Union
+from typing import Any
 
 import json
 import re
 from abc import ABC
 
-import trio
-from comm import CommDevice, SerialDevice
-from trio import run
+from comm import SerialDevice
 
 # from .device import Device
 
@@ -166,7 +164,9 @@ class Device(ABC):
         save = (
             "1"
             if save.upper() in ["Y", "YES"]
-            else "0" if save.upper() in ["N", "NO"] else save
+            else "0"
+            if save.upper() in ["N", "NO"]
+            else save
         )
         if not gas:
             save = ""
@@ -294,7 +294,9 @@ class Device(ABC):
         save = (
             "1"
             if save.upper() in ["Y", "YES"]
-            else "0" if save.upper() in ["N", "NO"] else save
+            else "0"
+            if save.upper() in ["N", "NO"]
+            else save
         )
         ret = await self._device._write_readline(f"{self._id}LCDB {save} {limit}")
         df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
@@ -314,7 +316,9 @@ class Device(ABC):
         mode = (
             "1"
             if mode.upper() in ["HOLD", "CURRENT"]
-            else "0" if mode.upper() in ["CLOSE"] else mode
+            else "0"
+            if mode.upper() in ["CLOSE"]
+            else mode
         )
         ret = await self._device._write_readline(f"{self._id}LCDM {mode}")
         df = ["Unit ID", "Mode"]
@@ -338,7 +342,9 @@ class Device(ABC):
         algo = (
             "2"
             if algo.upper() in ["PD21"]
-            else "0" if algo.upper() in ["PD", "PDF", "PD/PDF"] else mode
+            else "0"
+            if algo.upper() in ["PD", "PDF", "PD/PDF"]
+            else mode
         )
         ret = await self._device._write_readline(f"{self._id}LCA {algorithm}")
         df = ["Unit ID", "Algorithm"]
@@ -429,7 +435,9 @@ class Device(ABC):
         save = (
             "0 1"
             if save.upper() in ["Y", "YES"]
-            else "0 0" if save.upper() in ["N", "NO"] else save
+            else "0 0"
+            if save.upper() in ["N", "NO"]
+            else save
         )
         ret = await self._device._write_readline(
             f"{self._id}LCGD {save} {p_gain} {d_gain}"
@@ -456,7 +464,9 @@ class Device(ABC):
         save = (
             "0 1"
             if save.upper() in ["Y", "YES"]
-            else "0 0" if save.upper() in ["N", "NO"] else save
+            else "0 0"
+            if save.upper() in ["N", "NO"]
+            else save
         )
         ret = await self._device._write_readline(
             f"{self._id} LCG {save} {p_gain} {i_gain} {d_gain}"
@@ -523,22 +533,30 @@ class Device(ABC):
         up = (
             "1"
             if up.upper() in ["Y", "YES"]
-            else "0" if up.upper() in ["N", "NO"] else up
+            else "0"
+            if up.upper() in ["N", "NO"]
+            else up
         )
         down = (
             "1"
             if down.upper() in ["Y", "YES"]
-            else "0" if down.upper() in ["N", "NO"] else down
+            else "0"
+            if down.upper() in ["N", "NO"]
+            else down
         )
         zero = (
             "1"
             if zero.upper() in ["Y", "YES"]
-            else "0" if zero.upper() in ["N", "NO"] else zero
+            else "0"
+            if zero.upper() in ["N", "NO"]
+            else zero
         )
         power_up = (
             "1"
             if power_up.upper() in ["Y", "YES"]
-            else "0" if power_up.upper() in ["N", "NO"] else power_up
+            else "0"
+            if power_up.upper() in ["N", "NO"]
+            else power_up
         )
         ret = await self._device._write_readline(
             f"{self._id} LSRC {up} {down} {zero} {power_up}"
@@ -592,7 +610,9 @@ class Device(ABC):
         save = (
             "0 1"
             if save.upper() in ["Y", "YES"]
-            else "0 0" if save.upper() in ["N", "NO"] else save
+            else "0 0"
+            if save.upper() in ["N", "NO"]
+            else save
         )
         ret = await self._device._write_readline(
             f"{self._id}LCVO {save} {initial_offset} {closed_offset}"
@@ -615,7 +635,9 @@ class Device(ABC):
         enable = (
             "1"
             if enable.upper() in ["Y", "YES"]
-            else "0" if enable.upper() in ["N", "NO"] else enable
+            else "0"
+            if enable.upper() in ["N", "NO"]
+            else enable
         )
         ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
         df = ["Unit ID", "Active Ctrl"]
@@ -639,7 +661,9 @@ class Device(ABC):
         enable = (
             "1"
             if enable.upper() in ["Y", "YES"]
-            else "0" if enable.upper() in ["N", "NO"] else enable
+            else "0"
+            if enable.upper() in ["N", "NO"]
+            else enable
         )
         ret = await self._device._write_readline(f"{self._id}ZCA {enable} {delay}")
         df = ["Unit ID", "Auto-tare", "Delay (s)"]
@@ -693,7 +717,9 @@ class Device(ABC):
         group = (
             "1"
             if group.upper() in ["Y", "YES"]
-            else "0" if group.upper() in ["N", "NO"] else group
+            else "0"
+            if group.upper() in ["N", "NO"]
+            else group
         )
         override = "1" if override.upper() in ["Y", "YES"] else ""
         ret = await self._device._write_readline(
@@ -770,7 +796,9 @@ class Device(ABC):
         enable = (
             "1"
             if enable.upper() in ["Y", "YES"]
-            else "0" if enable.upper() in ["N", "NO"] else enable
+            else "0"
+            if enable.upper() in ["N", "NO"]
+            else enable
         )
         ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
         df = ["Unit ID", "Power-Up Tare"]
@@ -1273,7 +1301,9 @@ class Device(ABC):
         enable = (
             "1"
             if enable.upper() in ["Y", "YES"]
-            else "0" if enable.upper() in ["N", "NO"] else enable
+            else "0"
+            if enable.upper() in ["N", "NO"]
+            else enable
         )
         ret = await self._device._write_readline(f"{self._id}TCR {enable}")
         df = ["Unit ID", "Saving"]

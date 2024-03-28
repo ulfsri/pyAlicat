@@ -2,7 +2,6 @@
 
 import timeit
 
-import trio
 from trio import run
 from trio_serial import SerialStream
 
