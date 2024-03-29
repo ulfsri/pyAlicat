@@ -1,11 +1,11 @@
-"""
-Sets up the communication for the Alicat device.
+"""Sets up the communication for the Alicat device.
 
 Author: Grayson Bellamy
 Date: 2024-01-05
 """
 
-from typing import ByteString, Optional
+from typing import Optional
+from collections.abc import ByteString
 
 from abc import ABC, abstractmethod
 
@@ -14,28 +14,23 @@ from trio_serial import Parity, SerialStream, StopBits
 
 
 class CommDevice(ABC):
-    """
-    Sets up the communication for the an Alicat device.
-    """
+    """Sets up the communication for the an Alicat device."""
 
     def __init__(self, timeout: int) -> None:
-        """
-        Initializes the serial communication.
+        """Initializes the serial communication.
 
         Parameters
         ----------
         timeout : int
             The timeout of the Alicat device.
         """
-
         self.timeout = timeout
 
     @abstractmethod
     async def _read(self, len: int) -> Optional[str]:
-        """
-        Reads the serial communication.
+        """Reads the serial communication.
 
-        Returns
+        Returns:
         -------
         str
             The serial communication.
@@ -44,8 +39,7 @@ class CommDevice(ABC):
 
     @abstractmethod
     async def _write(self, command: str) -> None:
-        """
-        Writes the serial communication.
+        """Writes the serial communication.
 
         Parameters
         ----------
@@ -56,17 +50,14 @@ class CommDevice(ABC):
 
     @abstractmethod
     async def close(self):
-        """
-        Closes the serial communication.
-        """
+        """Closes the serial communication."""
         pass
 
     @abstractmethod
     async def _readline(self) -> Optional[str]:
-        """
-        Reads the serial communication until end-of-line character reached
+        """Reads the serial communication until end-of-line character reached.
 
-        Returns
+        Returns:
         -------
         str
             The serial communication.
@@ -75,8 +66,7 @@ class CommDevice(ABC):
 
     @abstractmethod
     async def _write_readline(self, command: str) -> Optional[str]:
-        """
-        Writes the serial communication and reads the response until end-of-line character reached
+        """Writes the serial communication and reads the response until end-of-line character reached.
 
         Parameters:
             command (str):
@@ -89,9 +79,7 @@ class CommDevice(ABC):
 
 
 class SerialDevice(CommDevice):
-    """
-    Sets up the communication for the an Alicat device using serial protocol.
-    """
+    """Sets up the communication for the an Alicat device using serial protocol."""
 
     def __init__(
         self,
@@ -105,8 +93,7 @@ class SerialDevice(CommDevice):
         rtscts: bool = False,
         exclusive: bool = False,
     ):
-        """
-        Initializes the serial communication.
+        """Initializes the serial communication.
 
         Parameters
         ----------
@@ -147,15 +134,14 @@ class SerialDevice(CommDevice):
         self.ser_devc = SerialStream(**self.serial_setup)
 
     async def _read(self, len: int = 1) -> ByteString:
-        """
-        Reads the serial communication.
+        """Reads the serial communication.
 
         Parameters
         ----------
         len : int
             The length of the serial communication to read. One character if not specified.
 
-        Returns
+        Returns:
         -------
         ByteString
             The serial communication.
@@ -170,8 +156,7 @@ class SerialDevice(CommDevice):
         return None
 
     async def _write(self, command: str) -> None:
-        """
-        Writes the serial communication.
+        """Writes the serial communication.
 
         Parameters
         ----------
@@ -187,10 +172,9 @@ class SerialDevice(CommDevice):
                 await self.ser_devc.send_all(command.encode("ascii") + self.eol)
 
     async def _readline(self) -> str:
-        """
-        Reads the serial communication until end-of-line character reached
+        """Reads the serial communication until end-of-line character reached.
 
-        Returns
+        Returns:
         -------
         str
             The serial communication.
@@ -211,15 +195,14 @@ class SerialDevice(CommDevice):
         return line.decode("ascii")
 
     async def _write_readall(self, command: str) -> list:
-        """
-        Write command and read until timeout reached.
+        """Write command and read until timeout reached.
 
         Parameters
         ----------
         command : str
             The serial communication.
 
-        Returns
+        Returns:
         -------
         list
             List of lines read from the device.
@@ -244,8 +227,7 @@ class SerialDevice(CommDevice):
         return arr_line
 
     async def _write_readline(self, command: str) -> str:
-        """
-        Writes the serial communication and reads the response until end-of-line character reached
+        """Writes the serial communication and reads the response until end-of-line character reached.
 
         Parameters:
             command (str):
@@ -271,21 +253,15 @@ class SerialDevice(CommDevice):
         return line.decode("ascii")
 
     async def _flush(self) -> None:
-        """
-        Flushes the serial communication.
-        """
+        """Flushes the serial communication."""
         await self.ser_devc.discard_input()
 
     async def close(self) -> None:
-        """
-        Closes the serial communication.
-        """
+        """Closes the serial communication."""
         self.isOpen = False
         await self.ser_devc.aclose()
 
     async def open(self) -> None:
-        """
-        Opens the serial communication.
-        """
+        """Opens the serial communication."""
         self.isOpen = True
         await self.ser_devc.aopen()

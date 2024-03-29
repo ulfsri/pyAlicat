@@ -27,7 +27,11 @@ classifiers = [  #! Update me
   "Programming Language :: Python :: 3.9",
 ]
 
+[tool.ruff.lint]
+select = ["D"]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -1,5 +1,4 @@
-"""
-Utilities for manipulating data from Alicat devices.
+"""Utilities for manipulating data from Alicat devices.
 
 Author: Grayson Bellamy
 Date: 2024-01-07
@@ -7,10 +6,9 @@ Date: 2024-01-07
 
 
 def gas_correction():
-    """
-    Calculates the gas correction factor for the Alicat device.
+    """Calculates the gas correction factor for the Alicat device.
 
-    Returns
+    Returns:
     -------
     float
         The gas correction factor.
