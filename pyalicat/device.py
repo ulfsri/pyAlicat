@@ -8,7 +8,7 @@ from comm import SerialDevice
 
 # from .device import Device
 
-with open("codes.json", "r") as f:
+with open("codes.json") as f:
     codes = json.load(f)
 statistics = codes["statistics"][0]
 units = codes["units"][0]
@@ -344,9 +344,9 @@ class Device(ABC):
             if algo.upper() in ["PD21"]
             else "0"
             if algo.upper() in ["PD", "PDF", "PD/PDF"]
-            else mode
+            else algo
         )
-        ret = await self._device._write_readline(f"{self._id}LCA {algorithm}")
+        ret = await self._device._write_readline(f"{self._id}LCA {algo}")
         df = ["Unit ID", "Algorithm"]
         ret = ret.split()
         algorithm_mapping = {"1": "PD/PDF", "2": "PD2I"}
@@ -964,7 +964,7 @@ class Device(ABC):
         Returns:
             dict: If the display is currently blinking
         """
-        if type(dur) == int:
+        if isinstance(dur, int):
             dur = str(dur)
         ret = await self._device._write_readline(f"{self._id}FFP {dur}")
         df = ["Unit ID", "Flashing?"]
@@ -984,7 +984,7 @@ class Device(ABC):
         Returns:
             dict: If the display is currently blinking
         """
-        ret = await self._device._write(f"{self._id}@ {new_id}")
+        await self._device._write(f"{self._id}@ {new_id}")
         self.id = new_id
         return
 
@@ -1076,7 +1076,7 @@ class Device(ABC):
         Returns:
             dict: Value in called slot (either new or read)
         """
-        if type(slot) == int:
+        if isinstance(slot, int):
             slot = str(slot)
         ret = await self._device._write_readline(f"{self._id}UD {slot} {val}")
         if val == "":
