@@ -85,6 +85,7 @@ class Device(ABC):
         self._dev_info = dev_info
         self._df_units = None
         self._df_format = None
+        self._vers = None
 
     async def poll(self) -> dict:
         """Gets the current value of the device.
@@ -151,6 +152,8 @@ class Device(ABC):
         Returns:
             dict: Reports the gas and its code and names.
         """
+        if gas and self._vers and self._vers < 10.05:
+            return await self.set_gas(gas)
         gas = gases.get(gas, "")
         if not gas:
             save = ""
@@ -159,6 +162,26 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
         df = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         return dict(zip(df, ret.split()))
+
+    async def set_gas(self, gas: str = ""):
+        """Sets the gas of the device # Untested.
+
+        Args:
+            gas (str): Name of the gas to set the device.
+
+        Returns:
+            dict: Dataframe with new gas.
+        """
+        if self._vers >= 10.05:
+            return await self.gas(gas)
+        if self._df_format is None:
+            await self.get_df_format()
+        gas = gases.get(gas, "")
+        ret = await self._device._write_readline(f"{self._id}G {gas}")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
 
     async def gas_list(self) -> dict:
         """Gets the list of available gases for the device.
@@ -553,6 +576,7 @@ class Device(ABC):
         df = ["Unit ID", "Vers", "Creation Date"]
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
+        self._vers = ret[1][:-4].replace(".", "").replace("v", ".")
         return dict(zip(df, ret))
 
     async def lock_display(self) -> dict:
@@ -1026,11 +1050,33 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports setpoint with units
         """
+        if self._vers and self._vers < 9.00:
+            return await self.change_setpoint(value)
         ret = await self._device._write_readline(f"{self._id}LS {value} {units[unit]}")
         df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
         return dict(zip(df, ret))
+
+    async def change_setpoint(self, value: float = "") -> dict:
+        """Changes the setpoint of the device.
+
+        Args:
+            value (float): Desired setpoint value for the controller.
+                         Set to 0 to close valve
+
+        Returns:
+            dict: Dataframe with new setpoint
+        """
+        if self._vers >= 9.00:
+            return await self.setpoint(value)
+        if self._df_format is None:
+            await self.get_df_format()
+        ret = await self._device._write_readline(f"{self._id}S {value}")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
 
     async def batch(
         self, totalizer: int = 1, batch_vol: int = "", unit: str = ""
@@ -1385,6 +1431,7 @@ class FlowController(FlowMeter):
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(df, ret))
 
+    '''
     async def set(self, meas: str, param1: str, param2: str) -> dict:
         """Gets the value of a measurement from the device.
 
@@ -1398,15 +1445,40 @@ class FlowController(FlowMeter):
         """
         resp = {}
         upper_meas = str(meas).upper()
-        # Set gas - Param1 = value, Param2 = save
+        # Set gas - Param1 = gas: str = "", Param2 = save: bool = ""
         if upper_meas == "GAS":
             resp.update(await self.gas(str(param1), str(param2)))
-        # Set setpoint - Param1 = value, Param2 = unit
+        # Set setpoint - Param1 = value: float = "", Param2 = unit: str = ""
         elif upper_meas in ["SETPOINT", "STPT"]:
             resp.update(await self.setpoint(str(param1), str(param2)))
-        # Set gas - Param1 = statistic
+        # Set loop control variable - Param1 = statistic: str = ""
         elif upper_meas in ["LOOP", "LOOP CTRL"]:
             resp.update(await self.loop_control_var(str(param1)))
+        return resp
+    '''
+
+    async def set(self, comm: dict) -> dict:
+        """Gets the value of a measurement from the device.
+
+        Args:
+            comm (dict): command to set as key, parameters as values
+            Use a list for multiple parameters
+
+        Returns:
+            dict: response of setting function
+        """
+        resp = {}
+        for meas in list(comm.keys()):
+            upper_meas = str(meas).upper()
+            # Set gas - Param1 = gas: str = "", Param2 = save: bool = ""
+            if upper_meas == "GAS":
+                resp.update(await self.gas(str(comm[meas][0]), str(comm[meas][1])))
+            # Set setpoint - Param1 = value: float = "", Param2 = unit: str = ""
+            elif upper_meas in ["SETPOINT", "STPT"]:
+                resp.update(await self.setpoint(str(comm[meas][0]), str(comm[meas][1])))
+            # Set loop control variable - Param1 = statistic: str = ""
+            elif upper_meas in ["LOOP", "LOOP CTRL"]:
+                resp.update(await self.loop_control_var(str(comm[meas][0])))
         return resp
 
     async def get(self, measurements: list = ["@"]) -> dict:
