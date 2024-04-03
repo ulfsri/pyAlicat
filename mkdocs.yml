@@ -1,0 +1,8 @@
+site_name: pyAlicat
+
+theme:
+  name: material
+
+plugins:
+- search
+- mkdocstrings
