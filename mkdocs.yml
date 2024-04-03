@@ -6,3 +6,8 @@ theme:
 plugins:
 - search
 - mkdocstrings
+
+nav:
+  - Home: index.md
+  - Code Reference:
+    - Device: device-reference.md
