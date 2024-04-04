@@ -2,7 +2,7 @@ site_name: pyAlicat
 
 theme:
   name: material
-  logo: assets/docs/logo.svg
+  logo: assets/logo.svg
   features:
     - navigation.tabs
     - navigation.sections
