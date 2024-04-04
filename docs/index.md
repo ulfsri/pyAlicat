@@ -1,22 +1,17 @@
 # pyAlicat
 
 <div align="center">
-
-<a href="" target="_blank">
-    <img src="assets/images/coverage.svg" alt="Coverage">
-</a>
 <a href="https://pypi.org/project/pyalicat" target="_blank">
     <img src="https://img.shields.io/pypi/v/pyalicat?color=%2334D058&label=pypi%20package" alt="Package version">
 </a>
 <a href="https://pypi.org/project/pyalicat" target="_blank">
     <img src="https://img.shields.io/pypi/pyversions/pyalicat.svg?color=%2334D058" alt="Supported Python versions">
 </a>
+</div>
 
 Python API for acquisition and control of Alicat mass flow meters and controllers.
 
 See [Alicat Serial Communications Guide](https://www.alicat.com/wp-content/documents/Alicat-Serial-Primer.pdf) for reference
-
-</div>
 
 ## Installation
 
@@ -252,7 +247,7 @@ GitHub creates the `bug`, `enhancement`, and `documentation` labels for you. Dep
 
 ## 🛡 License
 
-[![License](https://img.shields.io/github/license/ulfsri/pyAlicat)](https://github.com/ulfsri/pyAlicat/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/ulfsri/pyalicat)](https://github.com/ulfsri/pyAlicat/blob/main/LICENSE)
 
 This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/ulfsri/pyAlicat/blob/main/LICENSE) for more details.
 
