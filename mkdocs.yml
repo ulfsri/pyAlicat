@@ -37,6 +37,7 @@ repo_url: https://github.com/ulfsri/pyalicat
 plugins:
 - search
 - mkdocstrings
+- badges
 nav:
   - Home: index.md
   - Code Reference:

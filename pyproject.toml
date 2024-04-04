@@ -40,6 +40,7 @@ pandas = "^2.2.1"
 scipy = "^1.11.4"
 trio-serial = "^0.4.0"
 trio = "^0.25.0"
+mkdocs-badges = "^0.4.2"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.7"
