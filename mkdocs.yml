@@ -57,6 +57,7 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
-
+extra_css:
+  - stylesheets/extra.css
 copyright: |
   &copy; 2024 <a href="https://github.com/ulfsri"  target="_blank" rel="noopener">FSRI</a>
