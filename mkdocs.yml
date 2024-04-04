@@ -2,7 +2,7 @@ site_name: pyAlicat
 
 theme:
   name: material
-  logo: 'https://fsri.org/themes/custom/fsri/logo.svg'
+  logo: assets/docs/logo.svg
   features:
     - navigation.tabs
     - navigation.sections
