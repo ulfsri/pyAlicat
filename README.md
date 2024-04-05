@@ -1,7 +1,7 @@
 # pyAlicat
+![pyAlicat](docs/assets/images/logo_pyalicat.svg)
 
 <div align="center">
-[![pyAlicat](docs/assets/images/logo_pyalicat.svg)]
 
 [![Build status](https://github.com/ulfsri/pyAlicat/workflows/build/badge.svg?branch=main&event=push)](https://github.com/ulfsri/pyAlicat/actions?query=workflow%3Abuild)
 [![Python Version](https://img.shields.io/pypi/pyversions/pyalicat.svg)](https://pypi.org/project/pyAlicat/)
