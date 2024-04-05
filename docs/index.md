@@ -1,4 +1,5 @@
 # pyAlicat
+![pyAlicat](assets/images/logo_pyalicat.svg)
 
 <div align="center">
 <a href="https://pypi.org/project/pyalicat" target="_blank">

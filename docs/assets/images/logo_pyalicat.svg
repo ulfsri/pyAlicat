@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1867.09 663.85">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-3 {
+        fill: none;
+      }
+
+      .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: #f2f2f2;
+      }
+
+      .cls-4, .cls-5 {
+        fill: #c02032;
+      }
+
+      .cls-6 {
+        letter-spacing: -.04em;
+      }
+
+      .cls-7 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-5 {
+        font-family: FranklinGothic-Heavy, 'Franklin Gothic Heavy';
+        font-size: 450px;
+        font-weight: 800;
+      }
+    </style>
+  </defs>
+  <g>
+    <polygon class="cls-4" points="230.5 313 235 304 145 303 181 232 370 232 298 375 128 376 64 501 0 501 91 313 230.5 313"/>
+    <circle class="cls-4" cx="200.5" cy="263.5" r="12.5"/>
+  </g>
+  <g>
+    <polygon class="cls-4" points="203.06 446.59 198.56 455.59 288.56 456.59 252.56 527.59 63.56 527.59 135.56 384.59 305.56 383.59 369.56 258.59 433.56 258.59 342.56 446.59 203.06 446.59"/>
+    <circle class="cls-1" cx="233.06" cy="496.09" r="12.5"/>
+  </g>
+  <g>
+    <polygon class="cls-3" points="230.5 313 235 304 145 303 181 232 370 232 298 375 128 376 64 501 0 501 91 313 230.5 313"/>
+    <circle class="cls-2" cx="200.5" cy="263.5" r="12.5"/>
+  </g>
+  <text class="cls-5" transform="translate(388.65 528.5) scale(.98) skewX(-11.22)"><tspan x="0" y="0">ALI</tspan><tspan class="cls-7" x="673.68" y="0">C</tspan><tspan class="cls-6" x="951.42" y="0">A</tspan><tspan x="1221.24" y="0">T</tspan></text>
+</svg>

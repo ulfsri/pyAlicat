@@ -1,8 +1,8 @@
-site_name: pyAlicat
+site_name: ""
 
 theme:
   name: material
-  logo: assets/images/logo.svg
+  logo: assets/images/logo_pyalicat.svg
   favicon: assets/images/logo_round_simp.svg
   features:
     - navigation.tabs
