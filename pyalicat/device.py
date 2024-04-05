@@ -143,6 +143,8 @@ class Device(ABC):
     async def gas(self, gas: str = "", save: bool = "") -> dict:
         """Gets/Sets the gas of the device.
 
+        Devices with firmware versions 10.05 or greater should use this method
+
         Args:
             gas (str): Name of the gas to set the device.
             save (bool): Set to y/n. If yes, changes default on power-up
@@ -162,9 +164,9 @@ class Device(ABC):
         return dict(zip(df, ret.split()))
 
     async def set_gas(self, gas: str = ""):
-        """Sets the gas of the device
+        """Sets the gas of the device.
 
-# Untested.
+        Devices with firmware versions lower than 10.05 should use this method
 
         Args:
             gas (str): Name of the gas to set the device.
@@ -172,7 +174,7 @@ class Device(ABC):
         Returns:
             dict: Dataframe with new gas.
         """
-        if self._vers >= 10.05:
+        if self._vers and self._vers >= 10.05:
             return await self.gas(gas)
         if self._df_format is None:
             await self.get_df_format()
@@ -197,9 +199,9 @@ class Device(ABC):
         return ret
 
     async def tare_abs_P(self) -> dict:
-        """Tares the absolute pressure of the device, zeros out the abs P reference point
+        """Tares the absolute pressure of the device, zeros out the abs P reference point.
 
-# Untested.
+        # Untested.
 
         Should only be used when no flow and not pressurized line.
 
@@ -216,11 +218,11 @@ class Device(ABC):
         return dict(zip(self._df_format, df))
 
     async def tare_flow(self) -> dict:
-        """Creates a no-flow reference point
+        """Creates a no-flow reference point.
 
-# Untested.
+        # Untested.
 
-           Should only be used when no flow and at operation pressure.
+        Should only be used when no flow and at operation pressure.
 
         Returns:
             dict: Dataframe with zero flow.
@@ -235,11 +237,11 @@ class Device(ABC):
         return dict(zip(self._df_format, df))
 
     async def tare_gauge_P(self) -> dict:
-        """Tares the gauge pressure of the device, zeros out the diff P reference point
+        """Tares the gauge pressure of the device, zeros out the diff P reference point.
 
-# Untested.
+        # Untested.
 
-           Should only be used when no flow and at operation pressure.
+        Should only be used when no flow and at operation pressure.
 
         Returns:
             dict: Dataframe with zero guage pressure.
@@ -256,7 +258,7 @@ class Device(ABC):
     async def auto_tare(self, enable: bool = "", delay: float = "") -> dict:
         """Gets/Sets if the controller auto tares.
 
-# Untested: Sets if the controller auto tares.
+        # Untested: Sets if the controller auto tares.
 
         Args:
             enable (bool): Enable or disable auto tare
@@ -276,9 +278,7 @@ class Device(ABC):
         return dict(zip(df, ret))
 
     async def configure_data_frame(self, format: int = "") -> dict:
-        """Sets data frame's format
-
-# Untested.
+        """Sets data frame's format.
 
         Args:
             format (int):
@@ -307,7 +307,7 @@ class Device(ABC):
     ) -> dict:
         """Gets/Sets units for desired statistics.
 
-# Untested: Sets units for desired statistics.
+        **Setting is Nonfunctional**
 
         Args:
             statistic_value (str): Desired statistic to get/set unit for
@@ -334,10 +334,7 @@ class Device(ABC):
         stat_val: str = "",
         avg_time: int = "",
     ) -> dict:
-        """Gets average value of statistic.
-
-        Can set time statistic is averaged over.
-# Untested.
+        """Gets/Set time statistic is averaged over.
 
         Args:
             stat_val (str): Desired statistic to get avgerage/set time
@@ -346,9 +343,11 @@ class Device(ABC):
         Returns:
             dict: Responds value of queried average and avg time const
         """
-        ret = await self._device._write_readline(
-            f"{self._id}DCA {statistics[stat_val]} {avg_time}"
-        )
+        if stat_val.upper() == "ALL":
+            stat_val = 1
+        else:
+            statistics[stat_val]
+        ret = await self._device._write_readline(f"{self._id}DCA {stat_val} {avg_time}")
         df = ["Unit ID", "Value", "Time Const"]
         ret = ret.split()
         ret[1] = int(ret[1])
@@ -404,7 +403,6 @@ class Device(ABC):
     ) -> dict:
         """Gets/Sets pressure reference point.
 
-# Untested: Sets pressure reference point.
         To get Normal pressure reference point, set stp to N.
 
         Args:
@@ -430,7 +428,6 @@ class Device(ABC):
     async def stp_temp(self, stp: str = "S", unit: str = "", temp: float = "") -> dict:
         """Gets/Sets temperature reference point.
 
-# Untested: Sets temperature reference point. 
         To get Normal temperature reference point, set stp to N.
 
         Args:
@@ -456,10 +453,8 @@ class Device(ABC):
     async def zero_band(self, zb: float = "") -> dict:
         """Gets/Sets the zero band of the device.
 
-# Untested: Sets the zero band of the device.
-
         Args:
-            zb (float): % of full-scale readnigs process must exceed before device reports readings
+            zb (float): % of full-scale readings process must exceed before device reports readings
                 0 to 6.38 value
                 0 to disable
 
@@ -476,17 +471,15 @@ class Device(ABC):
         return dict(zip(df, ret))
 
     async def analog_out_source(
-        self, primary: str = "0", val: int = "", unit: str = ""
+        self, primary: str = "0", val: str = "", unit: str = ""
     ) -> dict:
         """Gets/Sets the source of the analog output.
 
-# Untested: Sets the source of the analog output.
-
         Args:
             primary (str): Primary of secondary analog output
-            val (int): Statistic being tracked
-                '0' to fix min possible output
-                '1' to fix max possible output
+            val (str): Statistic being tracked
+                'MAX' to fix min possible output
+                'MIN' to fix max possible output
                 Other for statistic
             unit (str): Desired unit. Optional
 
@@ -521,12 +514,12 @@ class Device(ABC):
     async def baud(self, new_baud: int = "") -> dict:
         """Gets/Sets the baud rate of the device.
 
-# Untested: Sets the baud rate of the device.
         Ensure COM is connected.
 
         Args:
-           new_baud (int): Set to one of the following:
-               2400, 4800, 9600, 19200, 38400, 57600, 115200
+            new_baud (int): Set to one of the following:
+                2400, 4800, 9600, 19200, 38400, 57600, 115200
+                After baud is changed, communication MUST be re-established
 
         Returns:
             dict: Baud rate, either current or new
@@ -559,10 +552,10 @@ class Device(ABC):
     async def change_unit_id(self, new_id: str = "") -> None:
         """Sets the unit ID of the device.
 
-**This changes the ID, but the device stops responding**.
+        **This changes the ID, but the device stops responding**.
 
         Args:
-           new_id (str): New ID. A-Z accepted
+            new_id (str): New ID. A-Z accepted
 
         Returns:
             dict: If the display is currently blinking
@@ -611,10 +604,10 @@ class Device(ABC):
     async def remote_tare(self, actions: list = []) -> dict:
         """Gets/Sets the remote tare value.
 
-Untested: Sets the remote tare effect.
+        Untested: Sets the remote tare effect.
 
         Args:
-           actions (list): Actions to perform
+            actions (list): Actions to perform
 
         Returns:
             dict: Total value of Active Actions
@@ -638,7 +631,7 @@ Untested: Sets the remote tare effect.
     async def restore_factory_settings(self) -> str:
         """Restores factory settings of the device.
 
-# Untested.
+        Untested.
 
         Removes any calibrations.
 
@@ -649,16 +642,14 @@ Untested: Sets the remote tare effect.
         return ret
 
     async def user_data(self, slot: int = "", val: str = "") -> dict:
-        """Gets/Sets user data in slot
+        """Gets/Sets user data in slot.
 
         Gets the user data from the string is slot.
-        Sets the user data in slot to val. 
-
-# Untested: Sets the user data in slot to val. 
+        Sets the user data in slot to val.
 
         Args:
-           slot (int): Slot number, 0 to 3
-           val (str): 32-char ASCII string. Must be encoded.
+            slot (int): Slot number, 0 to 3
+            val (str): 32-char ASCII string. Must be encoded.
 
         Returns:
             dict: Value in called slot (either new or read)
@@ -676,10 +667,8 @@ Untested: Sets the remote tare effect.
     async def streaming_rate(self, interval: int = "") -> dict:
         """Gets/Sets the streaming rate of the device.
 
-# Untested: Sets the streaming rate of the device.
-
         Args:
-           interval (int): Streaming rate in ms between data frames
+            interval (int): Streaming rate in ms between data frames
 
         Returns:
             dict: Interval
@@ -758,10 +747,10 @@ Untested: Sets the remote tare effect.
     async def delete_gas_mix(self, gasN: str = "") -> dict:
         """Deletes custom gas mixture.
 
-# Untested.
+        **Nonfunctional**
 
         Args:
-           gasN (str): Number of gas to delete
+            gasN (str): Number of gas to delete
 
         Returns:
             dict: Deleted gas' number
@@ -815,15 +804,23 @@ Untested: Sets the remote tare effect.
     ):
         """Enables/Disables and Configures totalizer.
 
-# Untested.
-
         Args:
-           totalizer (int): 1 or 2, which totalizer used
-           flow_stat_val (str): Statistic to measure. Use -1 to not change statistic
-           mode (int): Manages how to totalizer accumulates flow. -1 to 3
-           limit_mode (int): Manages what totalizer does when limit reached. -1 to 3
-           num (int): Value 7 to 10. How many digits in totalizer.
-           dec (int): 0 to 9. How many digits after decimal.
+            totalizer (int): 1 or 2, which totalizer used
+            flow_stat_val (str): Statistic to measure. Use -1 to not change statistic
+            mode (int): Manages how to totalizer accumulates flow. -1 to 3
+                -1 = Do not change
+                0 = add positive flow, ignore negative
+                1 = add negative flow, ignore positive
+                2 = add positive flow, subtract negative
+                3 = add positive flow until flow stops, then reset to 0
+            limit_mode (int): Manages what totalizer does when limit reached. -1 to 3
+                -1 = Do not change
+                0 = Stop count and leave at max, does not set TOV error
+                1 = Rest to 0, continue count, does not set TOV error
+                2 = Stop count and leave at max, sets TOV error
+                3 = Reset to 0, continue count, sets TOV error
+            num (int): Value 7 to 10. How many digits in totalizer.
+            dec (int): 0 to 9. How many digits after decimal.
 
         Returns:
             dict: Configuration of totalizer
@@ -848,10 +845,10 @@ Untested: Sets the remote tare effect.
     async def reset_totalizer(self, totalizer: int = 1) -> dict:
         """Returns totalizer count to zero and restarts timer.
 
-# Untested.
+        # Untested.
 
         Args:
-           totalizer (int): 1 or 2, which totalizer used
+            totalizer (int): 1 or 2, which totalizer used
 
         Returns:
             dict: Dataframe with totalizer set to zero.
@@ -868,10 +865,10 @@ Untested: Sets the remote tare effect.
     async def reset_totalizer_peak(self, totalizer: int = 1) -> dict:
         """Resets peak flow rate that has been measured since last reset.
 
-# Untested.
+        # Untested.
 
         Args:
-           totalizer (int): 1 or 2, which totalizer used
+            totalizer (int): 1 or 2, which totalizer used
 
         Returns:
             dict: Dataframe
@@ -978,7 +975,7 @@ Untested: Sets the remote tare effect.
             resp.update(await self.request(reqs[13 * i : 13 + 13 * i]))
             i += 1
         return resp
-    
+
     async def set(self, comm: dict) -> dict:
         """Sets the values measurements for the device.
 
@@ -1060,6 +1057,8 @@ class FlowController(FlowMeter):
     async def setpoint(self, value: float = "", unit: str = "") -> dict:
         """Gets/Sets the setpoint of the device.
 
+        Devices with firmware versions 9.00 or greater should use this method
+
         Args:
             value (float): Desired setpoint value for the controller.
                          Set to 0 to close valve
@@ -1079,6 +1078,8 @@ class FlowController(FlowMeter):
     async def change_setpoint(self, value: float = "") -> dict:
         """Changes the setpoint of the device.
 
+        Dev
+
         Args:
             value (float): Desired setpoint value for the controller.
                          Set to 0 to close valve
@@ -1086,7 +1087,7 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe with new setpoint
         """
-        if self._vers >= 9.00:
+        if self._vers and self._vers >= 9.00:
             return await self.setpoint(value)
         if self._df_format is None:
             await self.get_df_format()
@@ -1101,7 +1102,7 @@ class FlowController(FlowMeter):
     ) -> dict:
         """Directs controller to flow a set amount then close the valve.
 
-# Untested.
+        # Untested.
 
         Must accept a totalizer value. Defaults to totalizer 1.
         set batch volume to size of desired flow. Set to 0 to disable batch.
@@ -1124,8 +1125,6 @@ class FlowController(FlowMeter):
     async def deadband_limit(self, save: bool = "", limit: float = "") -> dict:
         """Gets/Sets the range the controller allows for drift around setpoint.
 
-# Untested: Sets the range the controller allows for drift around setpoint.
-
         Args:
             save (bool): Whether to save the deadband limit on startup
             limit (float): Value of deadband limit
@@ -1144,8 +1143,6 @@ class FlowController(FlowMeter):
     async def deadband_mode(self, mode: str = "") -> dict:
         """Gets/Sets the reaction the controller has for values around setpoint.
 
-# Untested: Sets the reaction the controller has for values around setpoint.
-
         Args:
             mode (str): "Hold" or "Current" for holds valve and current positions until outside the limits. : "Close" for closing valve until outside the limits.
 
@@ -1155,7 +1152,7 @@ class FlowController(FlowMeter):
         mode = (
             "1"
             if mode.upper() in ["HOLD", "CURRENT"]
-            else "0"
+            else "2"
             if mode.upper() in ["CLOSE"]
             else mode
         )
@@ -1168,8 +1165,6 @@ class FlowController(FlowMeter):
 
     async def loop_control_alg(self, algo: str = "") -> dict:
         """Gets/Sets the control algorithm the controller uses.
-
-# Untested: Sets the control algorithm the controller uses
 
         algorithm 1 = PD/PDF, algorithm 2 = PD2I.
 
@@ -1212,12 +1207,10 @@ class FlowController(FlowMeter):
         )
         return dict(zip(df, ret))
 
-    async def loop_control_setpoint(
+    async def loop_control_range(
         self, var: str = "", unit: str = "", min: float = "", max: float = ""
     ) -> dict:
         """Gets/Sets the control range of the statistic the setpoint controls.
-
-# Untested: Sets the control range of the statistic the setpoint controls.
 
         Args:
             var (str): Desired statistic to be queried/modified
@@ -1229,7 +1222,7 @@ class FlowController(FlowMeter):
             dict: Reports loop variable, units, min, and max
         """
         ret = await self._device._write_readline(
-            f"{self._id}LR {var} {units[unit]} {min} {max}"
+            f"{self._id}LR {statistics[var]} {units[unit]} {min} {max}"
         )
         df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
@@ -1241,8 +1234,6 @@ class FlowController(FlowMeter):
 
     async def max_ramp_rate(self, max: float = "", unit: str = "") -> dict:
         """Gets/Sets how fast controller moves to new setpoint.
-
-# Untested: Sets how fast controller moves to new setpoint.
 
         Args:
             max (float): Indicates step size for movement to setpoint
@@ -1263,7 +1254,7 @@ class FlowController(FlowMeter):
     ) -> dict:
         """Gets/Sets the proportional and intregral gains of the PD/PDF controller.
 
-# Untested: Sets the proportional and intregral gains of the PD/PDF controller.
+        Manual is incorrect, this does not have an insignifcant 0 in the command
 
         Args:
             save (bool): Whether to save gains on power-up
@@ -1274,7 +1265,7 @@ class FlowController(FlowMeter):
             dict: Reports P and D gains
         """
         if isinstance(save, bool):
-            save = "0 1" if save else "0 0"
+            save = "1" if save else "0"
         ret = await self._device._write_readline(
             f"{self._id}LCGD {save} {p_gain} {d_gain}"
         )
@@ -1288,7 +1279,7 @@ class FlowController(FlowMeter):
     ) -> dict:
         """Gets/Sets the proportional, intregral, and derivative gains of the PD2I controller.
 
-# Untested: Sets the proportional, intregral, and derivative gains of the PD2I controller.
+        **Setting is nonfunctional**
 
         Args:
             save (bool): Whether to save gains on power-up
@@ -1300,7 +1291,7 @@ class FlowController(FlowMeter):
             dict: Reports P, I, and D gains
         """
         if isinstance(save, bool):
-            save = "0 1" if save else "0 0"
+            save = "1" if save else "0"
         ret = await self._device._write_readline(
             f"{self._id}LCG {save} {p_gain} {i_gain} {d_gain}"
         )
@@ -1310,9 +1301,9 @@ class FlowController(FlowMeter):
         return dict(zip(df, ret))
 
     async def power_up_setpoint(self, val: float = "") -> dict:
-        """Enables immediate setpoint on power-up
+        """Enables immediate setpoint on power-up.
 
-# Untested.
+        # Untested.
 
         Args:
             val (float): Setpoint on power-up
@@ -1331,9 +1322,9 @@ class FlowController(FlowMeter):
         return dict(zip(self._df_format, df))
 
     async def overpressure(self, limit: float = "") -> dict:
-        """Sets the overpressure limit of the device. Flow is stopped if pressure exceeds
+        """Sets the overpressure limit of the device. Flow is stopped if pressure exceeds.
 
-# Untested.
+        # Untested.
 
         Args:
             limit (float): Upper limit of pressure
@@ -1356,8 +1347,6 @@ class FlowController(FlowMeter):
     ) -> dict:
         """Gets/Sets the ramp settings of the device.
 
-# Untested: Sets the ramp settings of the device.
-
         Args:
             up (bool): When setpoint is made higher. Disabled = immediate move. Enabled = Follow ramp rate
             down (bool): When setpoint is made lower. Disabled = immediate move. Enabled = Follow ramp rate
@@ -1378,24 +1367,22 @@ class FlowController(FlowMeter):
         ret = await self._device._write_readline(
             f"{self._id}LSRC {up} {down} {zero} {power_up}"
         )
-        print(ret)
         df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         output_mapping = {"1": "Enabled", "0": "Disabled"}
+        ret = ret.split()
         ret = [output_mapping.get(str(val), val) for val in ret]
         return dict(zip(df, ret))
 
     async def setpoint_source(self, mode: str = "") -> dict:
         """Gets/Sets how the setpoint is given to the controller.
 
-# Untested: Sets how the setpoint is given to the controller.
-
-**This appears to function for the meter for some reason**
+        **This appears to function for the meter for some reason**
 
         Args:
             mode (str):
                 A for Analog
                 S for Display or Serial Communications. Saves and restores setpoint on pwower-up
-                D for Display or Serial Communications. Does not save.
+                U for Display or Serial Communications. Does not save.
 
         Returns:
             dict: Setpoint source mode
@@ -1415,8 +1402,6 @@ class FlowController(FlowMeter):
         self, save: bool = "", initial_offset: float = "", closed_offset: float = ""
     ) -> dict:
         """Gets/Sets how much power driven to valve when first opened or considered closed.
-
-# Untested: Sets how much power driven to valve when first opened or considered closed.
 
         Args:
             save (bool): Whether to save offset values on power-up
@@ -1438,8 +1423,6 @@ class FlowController(FlowMeter):
 
     async def zero_pressure_control(self, enable: bool = "") -> dict:
         """Gets/Sets how controller reacts to 0 Pressure setpoint.
-
-# Untested: Sets how controller reacts to 0 Pressure setpoint.
 
         Args:
             enable (bool): If disabled, valve opens/closes completely. If enabled, uses close-loop
