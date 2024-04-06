@@ -19,10 +19,8 @@ class CommDevice(ABC):
     def __init__(self, timeout: int) -> None:
         """Initializes the serial communication.
 
-        Parameters
-        ----------
-        timeout : int
-            The timeout of the Alicat device.
+        Args:
+            timeout (int): The timeout of the Alicat device.
         """
         self.timeout = timeout
 
@@ -30,10 +28,11 @@ class CommDevice(ABC):
     async def _read(self, len: int) -> Optional[str]:
         """Reads the serial communication.
 
+        Args:
+            len (int): The length of the serial communication to read. One character if not specified.
+
         Returns:
-        -------
-        str
-            The serial communication.
+            str: The serial communication.
         """
         pass
 
@@ -41,10 +40,8 @@ class CommDevice(ABC):
     async def _write(self, command: str) -> None:
         """Writes the serial communication.
 
-        Parameters
-        ----------
-        command : str
-            The serial communication.
+        Args:
+            command (str): The serial communication.
         """
         pass
 
@@ -58,9 +55,7 @@ class CommDevice(ABC):
         """Reads the serial communication until end-of-line character reached.
 
         Returns:
-        -------
-        str
-            The serial communication.
+            str: The serial communication.
         """
         pass
 
@@ -68,9 +63,8 @@ class CommDevice(ABC):
     async def _write_readline(self, command: str) -> Optional[str]:
         """Writes the serial communication and reads the response until end-of-line character reached.
 
-        Parameters:
-            command (str):
-                The serial communication.
+        Args:
+            command (str): The serial communication.
 
         Returns:
             str: The serial communication.
@@ -95,26 +89,16 @@ class SerialDevice(CommDevice):
     ):
         """Initializes the serial communication.
 
-        Parameters
-        ----------
-        port : str
-            The port to which the Alicat device is connected.
-        baudrate : int
-            The baudrate of the Alicat device.
-        timeout : int
-            The timeout of the Alicat device in ms.
-        databits : int
-            The number of data bits.
-        parity : Parity
-            The parity of the Alicat device.
-        stopbits : StopBits
-            The of stop bits. Usually 1 or 2.
-        xonxoff : bool
-            Whether the port uses xonxoff.
-        rtscts : bool
-            Whether the port uses rtscts.
-        exclusive : bool
-            Whether the port is exclusive.
+        Args:
+            port (str): The port to which the Alicat device is connected.
+            baudrate (int): The baudrate of the Alicat device.
+            timeout (int): The timeout of the Alicat device in ms.
+            databits (int): The number of data bits.
+            parity (Parity): The parity of the Alicat device.
+            stopbits (StopBits): The of stop bits. Usually 1 or 2.
+            xonxoff (bool): Whether the port uses xonxoff.
+            rtscts (bool): Whether the port uses rtscts.
+            exclusive (bool): Whether the port is exclusive.
         """
         super().__init__(timeout)
 
@@ -136,15 +120,11 @@ class SerialDevice(CommDevice):
     async def _read(self, len: int = 1) -> ByteString:
         """Reads the serial communication.
 
-        Parameters
-        ----------
-        len : int
-            The length of the serial communication to read. One character if not specified.
+        Args:
+            len (int): The length of the serial communication to read. One character if not specified.
 
         Returns:
-        -------
-        ByteString
-            The serial communication.
+            ByteString: The serial communication.
         """
         if not self.isOpen:
             async with self.ser_devc:
@@ -158,10 +138,8 @@ class SerialDevice(CommDevice):
     async def _write(self, command: str) -> None:
         """Writes the serial communication.
 
-        Parameters
-        ----------
-        command : str
-            The serial communication.
+        Args:
+            command (str): The serial communication.
         """
         if not self.isOpen:
             async with self.ser_devc:
@@ -175,9 +153,7 @@ class SerialDevice(CommDevice):
         """Reads the serial communication until end-of-line character reached.
 
         Returns:
-        -------
-        str
-            The serial communication.
+            str: The serial communication.
         """
         async with self.ser_devc:
             self.isOpen = True
@@ -197,15 +173,11 @@ class SerialDevice(CommDevice):
     async def _write_readall(self, command: str) -> list:
         """Write command and read until timeout reached.
 
-        Parameters
-        ----------
-        command : str
-            The serial communication.
+        Args:
+            command (str): The serial communication.
 
         Returns:
-        -------
-        list
-            List of lines read from the device.
+            list: List of lines read from the device.
         """
         async with self.ser_devc:
             self.isOpen = True
@@ -230,8 +202,7 @@ class SerialDevice(CommDevice):
         """Writes the serial communication and reads the response until end-of-line character reached.
 
         Parameters:
-            command (str):
-                The serial communication.
+            command (str): The serial communication.
 
         Returns:
             str: The serial communication.
