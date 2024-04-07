@@ -85,7 +85,11 @@ class Device(ABC):
         self._dev_info = dev_info
         self._df_units = None
         self._df_format = None
-        self._vers = None
+        self._vers = float(
+            re.compile(r"[0-9]+v[0-9]+")
+            .findall(dev_info["software"])[0]
+            .replace("v", ".")
+        )
 
     async def poll(self) -> dict:
         """Gets the current measurements of the device in defined data frame format.
@@ -594,7 +598,7 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}VE")
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
-        self._vers = ret[1][:-4].replace(".", "").replace("v", ".")
+        self._vers = float(ret[1][:-4].replace(".", "").replace("v", "."))
         return dict(zip(LABELS, ret))
 
     async def lock_display(self) -> dict:
