@@ -31,7 +31,7 @@ async def new_device(port: str, id: str = "A", **kwargs: Any):
     if port.startswith("/dev/"):
         device = SerialDevice(port, **kwargs)
     dev_info = await device._write_readall(f"{id}??M*")
-    info_keys = [
+    INFO_KEYS = [
         "manufacturer",
         "website",
         "phone",
@@ -44,7 +44,7 @@ async def new_device(port: str, id: str = "A", **kwargs: Any):
         "software",
     ]
     dev_info = dict(
-        zip(info_keys, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
+        zip(INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
     )
     for cls in all_subclasses(Device):
         if cls.is_model(dev_info["model"]):
@@ -157,6 +157,7 @@ class Device(ABC):
         Returns:
             dict: Reports the gas and its code and names.
         """
+        LABELS = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         if gas and self._vers and self._vers < 10.05:
             return await self.set_gas(gas)
         gas = gases.get(gas, "")
@@ -165,10 +166,9 @@ class Device(ABC):
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
-        df = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
-        return dict(zip(df, ret.split()))
+        return dict(zip(LABELS, ret.split()))
 
-    async def set_gas(self, gas: str = "") -> dict:
+    async def _set_gas(self, gas: str = "") -> dict:
         """Sets the gas of the device.
 
         Note:
@@ -277,15 +277,15 @@ class Device(ABC):
         Returns:
             dict: If tare is active or not and delay length in seconds
         """
+        LABELS = ["Unit ID", "Auto-tare", "Delay (s)"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}ZCA {enable} {delay}")
-        df = ["Unit ID", "Auto-tare", "Delay (s)"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         ret[2] = float(ret[2])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def configure_data_frame(self, format: int = "") -> dict:
         """Sets data frame's format.
@@ -333,6 +333,7 @@ class Device(ABC):
         Returns:
             dict: Responds with unit
         """
+        LABELS = ["Unit ID", "Unit Code", "Unit Label"]
         if isinstance(group, bool):
             group = "1" if group else "0"
         if isinstance(override, bool):
@@ -340,9 +341,8 @@ class Device(ABC):
         ret = await self._device._write_readline(
             f"{self._id}DCU {statistics[statistic_value]} {group} {units[unit]} {override}"
         )
-        df = ["Unit ID", "Unit Code", "Unit Label"]
         ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def flow_press_avg(
         self,
@@ -358,15 +358,15 @@ class Device(ABC):
         Returns:
             dict: Responds value of queried average and avg time const
         """
+        LABELS = ["Unit ID", "Value", "Time Const"]
         if stat_val.upper() == "ALL":
             stat_val = 1
         else:
             statistics[stat_val]
         ret = await self._device._write_readline(f"{self._id}DCA {stat_val} {avg_time}")
-        df = ["Unit ID", "Value", "Time Const"]
         ret = ret.split()
         ret[1] = int(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def full_scale_val(self, stat_val: str = "", unit: str = "") -> dict:
         """Gets measurement range of given statistic.
@@ -378,13 +378,13 @@ class Device(ABC):
         Returns:
             dict: Responds max value of statistic and units
         """
+        LABELS = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
         ret = await self._device._write_readline(
             f"{self._id}FPF {statistics[stat_val]} {units[unit]}"
         )
-        df = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def power_up_tare(self, enable: bool = "") -> dict:
         """Gets/Sets if device tares on power-up.
@@ -395,14 +395,14 @@ class Device(ABC):
         Returns:
             dict: If tare is enabled
         """
+        LABELS = ["Unit ID", "Power-Up Tare"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
-        df = ["Unit ID", "Power-Up Tare"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def data_frame(self) -> str:
         """Gets info about current data frame.
@@ -428,6 +428,7 @@ class Device(ABC):
         Returns:
             dict: Current pressure reference point and units
         """
+        LABELS = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
         if stp.upper == "NTP":
             stp = "N"
         if stp.upper() != "N":
@@ -435,10 +436,9 @@ class Device(ABC):
         ret = await self._device._write_readline(
             f"{self._id}DCFRP {stp.upper()} {str(units[unit])} {str(press)}"
         )
-        df = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def stp_temp(self, stp: str = "S", unit: str = "", temp: float = "") -> dict:
         """Gets/Sets standard or normal temperature reference point.
@@ -453,6 +453,7 @@ class Device(ABC):
         Returns:
             dict: Current temperature reference point and units
         """
+        LABELS = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
         if stp.upper == "NTP":
             stp = "N"
         if stp.upper() != "N":
@@ -460,10 +461,9 @@ class Device(ABC):
         ret = await self._device._write_readline(
             f"{self._id}DCFRT {stp.upper()} {str(units[unit])} {str(temp)}"
         )
-        df = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def zero_band(self, zb: float = "") -> dict:
         """Gets/Sets the zero band of the device.
@@ -477,14 +477,14 @@ class Device(ABC):
         Returns:
             dict: Returns current zero band as percent of full scale
         """
+        LABELS = ["Unit ID", "Zero Band (%)"]
         if isinstance(zb, (float, int)):
             zb = f"0 {zb}"
         ret = await self._device._write_readline(f"{self._id}DCZ {zb}")
-        df = ["Unit ID", "Zero Band (%)"]
         ret = ret.split()
         ret.pop(1)
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def analog_out_source(
         self, primary: str = "0", val: str = "", unit: str = ""
@@ -503,6 +503,7 @@ class Device(ABC):
         Returns:
             dict: Statistic and units
         """
+        LABELS = ["Unit ID", "Value", "Unit Code", "Unit Label"]
         if primary.upper() == "SECONDARY" or primary.upper() == "2ND":
             primary = "1"
         if val != "":
@@ -515,7 +516,6 @@ class Device(ABC):
         ret = await self._device._write_readline(
             f"{self._id}ASOCV {primary} {val} {unit}"
         )
-        df = ["Unit ID", "Value", "Unit Code", "Unit Label"]
         ret = ret.split()
         if ret[1] == "0":
             ret[1] = "Max"
@@ -526,7 +526,7 @@ class Device(ABC):
                 if str(statistics[stat]) == ret[1]:
                     ret[1] = stat  # This is not necessarily the correct code
                     break
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def baud(self, new_baud: int = "") -> dict:
         """Gets/Sets the baud rate of the device.
@@ -538,19 +538,20 @@ class Device(ABC):
             new_baud (int): Set to one of the following:
 
                 - 2400 4800, 9600, 19200, 38400, 57600, 115200
+
                 After baud is changed, communication MUST be re-established.
 
         Returns:
             dict: Baud rate, either current or new
         """
-        valid_baud_rates = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
-        if new_baud != "" and int(new_baud) not in valid_baud_rates:
+        LABELS = ["Unit ID", "Baud"]
+        VALID_BAUD_RATES = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
+        if new_baud != "" and int(new_baud) not in VALID_BAUD_RATES:
             new_baud = ""
         ret = await self._device._write_readline(f"{self._id}NCB {new_baud}")
-        df = ["Unit ID", "Baud"]
         ret = ret.split()
         ret[1] = int(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def blink(self, dur: int = "") -> dict:
         """Blinks the device. Gets the blinking state.
@@ -563,12 +564,12 @@ class Device(ABC):
         Returns:
             dict: If the display is currently blinking
         """
+        LABELS = ["Unit ID", "Flashing?"]
         ret = await self._device._write_readline(f"{self._id}FFP {dur}")
-        df = ["Unit ID", "Flashing?"]
         ret = ret.split()
         output_mapping = {"1": "Yes", "0": "No"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def change_unit_id(self, new_id: str = "") -> None:
         """Sets the unit ID of the device.
@@ -589,12 +590,12 @@ class Device(ABC):
         Returns:
             dict: Current firmware vesion and its date of creation
         """
+        LABELS = ["Unit ID", "Vers", "Creation Date"]
         ret = await self._device._write_readline(f"{self._id}VE")
-        df = ["Unit ID", "Vers", "Creation Date"]
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
         self._vers = ret[1][:-4].replace(".", "").replace("v", ".")
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def lock_display(self) -> dict:
         """Disables buttons on front of the device.
@@ -634,6 +635,7 @@ class Device(ABC):
         Returns:
             dict: Total value of active actions
         """
+        LABELS = ["Unit ID", "Active Actions Total"]
         action_dict = {
             "Primary Press": 1,
             "Secondary Press": 2,
@@ -645,10 +647,9 @@ class Device(ABC):
         if not actions:
             act_tot = ""
         ret = await self._device._write_readline(f"{self._id}ASRCA {act_tot}")
-        df = ["Unit ID", "Active Actions Total"]
         ret = ret.split()
         ret[1] = int(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def restore_factory_settings(self) -> str:
         """Restores factory settings of the device.
@@ -677,13 +678,13 @@ class Device(ABC):
         Returns:
             dict: Value in called slot (either new or read)
         """
-        ret = await self._device._write_readline(f"{self._id}UD {slot} {val}")
         if val == "":
-            df = ["Unit ID", "Curr. Value"]
+            LABELS = ["Unit ID", "Curr. Value"]
         else:
-            df = ["Unit ID", "New Value"]
+            LABELS = ["Unit ID", "New Value"]
+        ret = await self._device._write_readline(f"{self._id}UD {slot} {val}")
         ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def streaming_rate(self, interval: int = "") -> dict:
         """Gets/Sets the streaming rate of the device.
@@ -694,11 +695,11 @@ class Device(ABC):
         Returns:
             dict: Interval of streaming rate
         """
+        LABELS = ["Unit ID", "Interval (ms)"]
         ret = await self._device._write_readline(f"{self._id}NCS {interval}")
-        df = ["Unit ID", "Interval (ms)"]
         ret = ret.split()
         ret[1] = int(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def unlock_display(self) -> dict:
         """Enables buttons on front of the device.
@@ -747,10 +748,7 @@ class Device(ABC):
         Returns:
             dict: Gas number of new mix and percentages and names of each constituent
         """
-        ret = await self._device._write_readline(
-            f"{self._id}GM {name} {number} {gas1P} {gases[gas1N]} {gas2P} {gases[gas2N]} {gas3P} {gases[gas3N]} {gas4P} {gases[gas4N]} {gas5P} {gases[gas5N]}"
-        )
-        df = [
+        LABELS = [
             "Unit ID",
             "Gas Num",
             "Gas1 Name",
@@ -764,8 +762,11 @@ class Device(ABC):
             "Gas5 Name",
             "Gas5 Perc",
         ]
+        ret = await self._device._write_readline(
+            f"{self._id}GM {name} {number} {gas1P} {gases[gas1N]} {gas2P} {gases[gas2N]} {gas3P} {gases[gas3N]} {gas4P} {gases[gas4N]} {gas5P} {gases[gas5N]}"
+        )
         ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def delete_gas_mix(self, gasN: str = "") -> dict:
         """Deletes custom gas mixture.
@@ -779,10 +780,10 @@ class Device(ABC):
         Returns:
             dict: Deleted gas' number
         """
+        LABELS = ["Unit ID", "Deleted Gas Num"]
         ret = await self._device._write_readline(f"{self._id}GD {gasN}")
-        df = ["Unit ID", "Deleted Gas Num"]
         ret = ret.split()
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def query_gas_mix(self, gasN: int = "") -> dict:
         """Gets percentages of gases in mixture.
@@ -793,8 +794,7 @@ class Device(ABC):
         Returns:
             dict: Gas numbers and their percentages in mixture
         """
-        ret = await self._device._write_readall(f"{self._id}GC {gasN}")
-        df = [
+        LABELS = [
             "Unit ID",
             "Gas Num",
             "Gas1 Name",
@@ -808,14 +808,15 @@ class Device(ABC):
             "Gas5 Name",
             "Gas5 Perc",
         ]
+        ret = await self._device._write_readall(f"{self._id}GC {gasN}")
         ret = ret[0].replace("=", " ").split()
         for i in range(len(ret)):
-            if "Name" in df[i]:
+            if "Name" in LABELS[i]:
                 ret[i] = next(
                     (code for code, value in gases.items() if value == int(ret[i])),
                     ret[i],
                 )
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def config_totalizer(
         self,
@@ -851,12 +852,7 @@ class Device(ABC):
         Returns:
             dict: Configuration of totalizer
         """
-        if flow_stat_val != "":
-            flow_stat_val = statistics.get(flow_stat_val, -1)
-        ret = await self._device._write_readline(
-            f"{self._id}TC {totalizer} {flow_stat_val} {mode} {limit_mode} {num} {dec}"
-        )
-        df = [
+        LABELS = [
             "Unit ID",
             "Totalizer",
             "Flow Stat Val",
@@ -865,8 +861,13 @@ class Device(ABC):
             "num Digits",
             "Dec Place",
         ]
+        if flow_stat_val != "":
+            flow_stat_val = statistics.get(flow_stat_val, -1)
+        ret = await self._device._write_readline(
+            f"{self._id}TC {totalizer} {flow_stat_val} {mode} {limit_mode} {num} {dec}"
+        )
         ret = ret.split()
-        return dict(zip(df, ret))  # Need to convert codes to text
+        return dict(zip(LABELS, ret))  # Need to convert codes to text
 
     async def reset_totalizer(self, totalizer: int = 1) -> dict:
         """Returns totalizer count to zero and restarts timer.
@@ -921,14 +922,14 @@ class Device(ABC):
         Returns:
             dict: Says if totalizer is enabled or disabled
         """
+        LABELS = ["Unit ID", "Saving"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}TCR {enable}")
-        df = ["Unit ID", "Saving"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))  # Need to convert codes to text
+        return dict(zip(LABELS, ret))  # Need to convert codes to text
 
     async def get_df_format(self) -> list:
         """Gets the format of the current dataframe format of the device.
@@ -1094,15 +1095,21 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports setpoint with units
         """
+        LABELS = [
+            "Unit ID",
+            "Current Setpt",
+            "Requested Setpt",
+            "Unit Code",
+            "Unit Label",
+        ]
         if self._vers and self._vers < 9.00:
             return await self.change_setpoint(value)
         ret = await self._device._write_readline(f"{self._id}LS {value} {units[unit]}")
-        df = ["Unit ID", "Current Setpt", "Requested Setpt", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
-    async def change_setpoint(self, value: float = "") -> dict:
+    async def _change_setpoint(self, value: float = "") -> dict:
         """Changes the setpoint of the device.
 
         Note:
@@ -1140,11 +1147,11 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports totalizer, batch size, units.
         """
+        LABELS = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
         ret = await self._device._write_readline(
             f"{self._id}TB {totalizer} {batch_vol} {units[unit]}"
         )
-        df = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
-        return dict(zip(df, ret.split()))
+        return dict(zip(LABELS, ret.split()))
 
     async def deadband_limit(self, save: bool = "", limit: float = "") -> dict:
         """Gets/Sets the range the controller allows for drift around setpoint.
@@ -1156,13 +1163,13 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports deadband with units
         """
+        LABELS = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(f"{self._id}LCDB {save} {limit}")
-        df = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def deadband_mode(self, mode: str = "") -> dict:
         """Gets/Sets the reaction the controller has for values around setpoint.
@@ -1173,6 +1180,7 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports mode
         """
+        LABELS = ["Unit ID", "Mode"]
         mode = (
             "1"
             if mode.upper() in ["HOLD", "CURRENT"]
@@ -1181,11 +1189,10 @@ class FlowController(FlowMeter):
             else mode
         )
         ret = await self._device._write_readline(f"{self._id}LCDM {mode}")
-        df = ["Unit ID", "Mode"]
         ret = ret.split()
         output_mapping = {"1": "Hold valve at current", "2": "Close valve"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def loop_control_alg(self, algo: str = "") -> dict:
         """Gets/Sets the control algorithm the controller uses.
@@ -1199,6 +1206,7 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports algorithm
         """
+        LABELS = ["Unit ID", "Algorithm"]
         algo = (
             "2"
             if algo.upper() in ["PD2I"]
@@ -1207,11 +1215,10 @@ class FlowController(FlowMeter):
             else algo
         )
         ret = await self._device._write_readline(f"{self._id}LCA {algo}")
-        df = ["Unit ID", "Algorithm"]
         ret = ret.split()
         algorithm_mapping = {"1": "PD/PDF", "2": "PD2I"}
         ret[1] = algorithm_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def loop_control_var(self, var: str = "") -> dict:
         """Sets the statistic the setpoint controls.
@@ -1222,16 +1229,16 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports new loop variable
         """
+        LABELS = ["Unit ID", "Loop Var Val"]
         # If the user did not specify setpoint, assume Setpt
         if var and var[-6:] != "_Setpt":
             var += "_Setpt"
         ret = await self._device._write_readline(f"{self._id}LV {statistics[var]}")
-        df = ["Unit ID", "Loop Var Val"]
         ret = ret.split()
         ret[1] = next(
             (code for code, value in statistics.items() if value == int(ret[1])), ret[1]
         )
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def loop_control_range(
         self, var: str = "", unit: str = "", min: float = "", max: float = ""
@@ -1247,16 +1254,16 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports loop variable, units, min, and max
         """
+        LABELS = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = await self._device._write_readline(
             f"{self._id}LR {statistics[var]} {units[unit]} {min} {max}"
         )
-        df = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
         ret = ret.split()
         ret[1] = next(
             (code for code, value in statistics.items() if value == int(ret[1])), ret[1]
         )
         ret[2], ret[3] = float(ret[2]), float(ret[3])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def max_ramp_rate(self, max: float = "", unit: str = "") -> dict:
         """Gets/Sets how fast controller moves to new setpoint.
@@ -1268,11 +1275,11 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports max ramp rate with unit
         """
+        LABELS = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         ret = await self._device._write_readline(f"{self._id}SR {max} {units[unit]}")
-        df = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         ret = ret.split()
         ret[1] = float(ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def pdf_gains(
         self, save: bool = "", p_gain: int = "", d_gain: int = ""
@@ -1289,15 +1296,15 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports P and D gains
         """
+        LABELS = ["Unit ID", "P  Gain", "D Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(
             f"{self._id}LCGD {save} {p_gain} {d_gain}"
         )
-        df = ["Unit ID", "P  Gain", "D Gain"]
         ret = ret.split()
         ret[1], ret[2] = int(ret[1]), int(ret[2])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def pd2i_gains(
         self, save: bool = "", p_gain: int = "", i_gain: int = "", d_gain: int = ""
@@ -1316,15 +1323,15 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports P, I, and D gains
         """
+        LABELS = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(
             f"{self._id}LCG {save} {p_gain} {i_gain} {d_gain}"
         )
-        df = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
         ret = ret.split()
         ret[1], ret[2], ret[3] = int(ret[1]), int(ret[2]), int(ret[3])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def power_up_setpoint(self, val: float = "") -> dict:
         """Enables immediate setpoint on power-up.
@@ -1382,6 +1389,7 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe
         """
+        LABELS = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         if isinstance(up, bool):
             up = "1" if up else "0"
         if isinstance(down, bool):
@@ -1393,11 +1401,10 @@ class FlowController(FlowMeter):
         ret = await self._device._write_readline(
             f"{self._id}LSRC {up} {down} {zero} {power_up}"
         )
-        df = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret = ret.split()
         ret = [output_mapping.get(str(val), val) for val in ret]
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def setpoint_source(self, mode: str = "") -> dict:
         """Gets/Sets how the setpoint is given to the controller.
@@ -1415,8 +1422,8 @@ class FlowController(FlowMeter):
         Returns:
             dict: Setpoint source mode
         """
+        LABELS = ["Unit ID", "Mode"]
         ret = await self._device._write_readline(f"{self._id}LSS {mode}")
-        df = ["Unit ID", "Mode"]
         ret = ret.split()
         mapping = {
             "A": "Analog",
@@ -1424,7 +1431,7 @@ class FlowController(FlowMeter):
             "U": "Serial/Display, Unsaved",
         }
         ret[1] = mapping.get(ret[1], ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def valve_offset(
         self, save: bool = "", initial_offset: float = "", closed_offset: float = ""
@@ -1439,15 +1446,15 @@ class FlowController(FlowMeter):
         Returns:
             dict: Offset values
         """
+        LABELS = ["Unit ID", "Init Offset (%)", "Closed Offset (%)"]
         if isinstance(save, bool):
             save = "0 1" if save else "0 0"
         ret = await self._device._write_readline(
             f"{self._id}LCVO {save} {initial_offset} {closed_offset}"
         )
-        df = ["Unit ID", "Init Offset (%)", "Closed Offset (%)"]
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     async def zero_pressure_control(self, enable: bool = "") -> dict:
         """Gets/Sets how controller reacts to 0 Pressure setpoint.
@@ -1458,14 +1465,14 @@ class FlowController(FlowMeter):
         Returns:
             dict: If active control is active or not
         """
+        LABELS = ["Unit ID", "Active Ctrl"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
-        df = ["Unit ID", "Active Ctrl"]
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
-        return dict(zip(df, ret))
+        return dict(zip(LABELS, ret))
 
     '''
 I'm going to double check the new set does exactly what we want before I delete this
