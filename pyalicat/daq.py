@@ -18,12 +18,23 @@ class DAQ:
         """
         pass
 
-    def _init_devices(self) -> None:
-        """Creates and initializes the devices."""
+    def _add_device(self) -> None:
+        """Creates and initializes the devices.
+
+        Args:
+            id : str
+            The ID of the device.
+
+        Returns:
+            str
+            The data from the device.
+        """
         pass
 
     def get(self, id: str) -> str:
         """Gets the data from the device.
+
+        If id not specified, returns data from all devices.
 
         Parameters
         ----------
@@ -34,16 +45,6 @@ class DAQ:
         -------
         str
             The data from the device.
-        """
-        pass
-
-    def get_all(self) -> dict:
-        """Gets the data from all devices.
-
-        Returns:
-        -------
-        dict
-            The data from all devices.
         """
         pass
 
