@@ -163,6 +163,7 @@ class Device(ABC):
         """
         LABELS = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         if gas and self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05, running Set Gas")
             return await self.set_gas(gas)
         gas = gases.get(gas, "")
         if not gas:
@@ -176,7 +177,7 @@ class Device(ABC):
         """Sets the gas of the device.
 
         Note:
-            Devices with firmware versions lower than 10.05 should use this method
+            Devices with firmware versions lower than 10v05 should use this method
 
         Args:
             gas (str): Name of the gas to set on the device.
@@ -185,6 +186,7 @@ class Device(ABC):
             dict: Dataframe with new gas.
         """
         if self._vers and self._vers >= 10.05:
+            print("Error: Version later than 10v05, running Active Gas")
             return await self.gas(gas)
         if self._df_format is None:
             await self.get_df_format()
@@ -281,6 +283,9 @@ class Device(ABC):
         Returns:
             dict: If tare is active or not and delay length in seconds
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Auto-tare", "Delay (s)"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
@@ -304,6 +309,9 @@ class Device(ABC):
         Returns:
             dict: Data Frame in new format
         """
+        if self._vers and self._vers < 6.00:
+            print("Error: Version earlier than 6v00")
+            return
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
             await self.get_df_format()
@@ -337,6 +345,9 @@ class Device(ABC):
         Returns:
             dict: Responds with unit
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Unit Code", "Unit Label"]
         if isinstance(group, bool):
             group = "1" if group else "0"
@@ -362,6 +373,9 @@ class Device(ABC):
         Returns:
             dict: Responds value of queried average and avg time const
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Value", "Time Const"]
         if stat_val.upper() == "ALL":
             stat_val = 1
@@ -382,6 +396,9 @@ class Device(ABC):
         Returns:
             dict: Responds max value of statistic and units
         """
+        if self._vers and self._vers < 6.00:
+            print("Error: Version earlier than 6v00")
+            return
         LABELS = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
         ret = await self._device._write_readline(
             f"{self._id}FPF {statistics[stat_val]} {units[unit]}"
@@ -399,6 +416,9 @@ class Device(ABC):
         Returns:
             dict: If tare is enabled
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Power-Up Tare"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
@@ -414,6 +434,9 @@ class Device(ABC):
         Returns:
             str: table that outlines data frame format
         """
+        if self._vers and self._vers < 6.00:
+            print("Error: Version earlier than 6v00")
+            return
         ret = await self._device._write_readall(f"{self._id}??D*")
         return ret
 
@@ -432,6 +455,9 @@ class Device(ABC):
         Returns:
             dict: Current pressure reference point and units
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
         if stp.upper == "NTP":
             stp = "N"
@@ -457,6 +483,9 @@ class Device(ABC):
         Returns:
             dict: Current temperature reference point and units
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
         if stp.upper == "NTP":
             stp = "N"
@@ -481,6 +510,9 @@ class Device(ABC):
         Returns:
             dict: Returns current zero band as percent of full scale
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Zero Band (%)"]
         if isinstance(zb, (float, int)):
             zb = f"0 {zb}"
@@ -498,7 +530,6 @@ class Device(ABC):
         Args:
             primary (str): Primary or secondary analog output
             val (str): Statistic being tracked
-
                 - 'MAX' to fix min possible output
                 - 'MIN' to fix max possible output
                 - Other for statistic
@@ -507,6 +538,9 @@ class Device(ABC):
         Returns:
             dict: Statistic and units
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Value", "Unit Code", "Unit Label"]
         if primary.upper() == "SECONDARY" or primary.upper() == "2ND":
             primary = "1"
@@ -548,6 +582,9 @@ class Device(ABC):
         Returns:
             dict: Baud rate, either current or new
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Baud"]
         VALID_BAUD_RATES = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
         if new_baud != "" and int(new_baud) not in VALID_BAUD_RATES:
@@ -568,6 +605,9 @@ class Device(ABC):
         Returns:
             dict: If the display is currently blinking
         """
+        if self._vers and self._vers < 8.28:
+            print("Error: Version earlier than 8v28")
+            return
         LABELS = ["Unit ID", "Flashing?"]
         ret = await self._device._write_readline(f"{self._id}FFP {dur}")
         ret = ret.split()
@@ -639,6 +679,9 @@ class Device(ABC):
         Returns:
             dict: Total value of active actions
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Active Actions Total"]
         action_dict = {
             "Primary Press": 1,
@@ -666,6 +709,9 @@ class Device(ABC):
         Returns:
             Confirmation of restoration
         """
+        if self._vers and self._vers < 7.00:
+            print("Error: Version earlier than 7v00")
+            return
         ret = await self._device._write_readline(f"{self._id}FACTORY RESTORE ALL")
         return ret
 
@@ -682,6 +728,9 @@ class Device(ABC):
         Returns:
             dict: Value in called slot (either new or read)
         """
+        if self._vers and self._vers < 8.24:
+            print("Error: Version earlier than 8v24")
+            return
         if val == "":
             LABELS = ["Unit ID", "Curr. Value"]
         else:
@@ -699,6 +748,9 @@ class Device(ABC):
         Returns:
             dict: Interval of streaming rate
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Interval (ms)"]
         ret = await self._device._write_readline(f"{self._id}NCS {interval}")
         ret = ret.split()
@@ -724,24 +776,21 @@ class Device(ABC):
         self,
         name: str = "",
         number: int = "",
-        gas1P: float = "",
-        gas1N: str = "",
-        gas2P: float = "",
-        gas2N: str = "",
-        gas3P: float = "",
-        gas3N: str = "",
-        gas4P: float = "",
-        gas4N: str = "",
-        gas5P: float = "",
-        gas5N: str = "",
+        gas_dict: dict = {}
     ) -> dict:
         """Sets custom gas mixture.
 
         This only works with specific gas codes so far
+        
+        Note:
+            **Untested**
 
         Args:
             name (str): Name of custom mixture
             number (int): 236 to 255. Gas is saved to this number
+            gas_dict (dict): Gas name : Percentage of Mixture. Maximum of 5 gases. Percent is Molar
+                            percent up to 2 decimals. Total percentages must sum to 100.00%
+                            
             gas[n]P (float): Molar percent up to 2 decimals. Total percentages must sum to 100.00%
 
                 - n is the number (1 to 5) of the gas in the function call
@@ -752,6 +801,16 @@ class Device(ABC):
         Returns:
             dict: Gas number of new mix and percentages and names of each constituent
         """
+        if self._vers and self._vers < 5.00:
+            print("Error: Version earlier than 5v00")
+            return
+        if len(gas_dict) > 5:
+            print("Error: Too many input gases")
+            return
+        gas_string = ""
+        for x in gas_dict:
+            gas_string += f" {gas_dict[x]} {gases[x]}"
+        
         LABELS = [
             "Unit ID",
             "Gas Num",
@@ -767,7 +826,7 @@ class Device(ABC):
             "Gas5 Perc",
         ]
         ret = await self._device._write_readline(
-            f"{self._id}GM {name} {number} {gas1P} {gases[gas1N]} {gas2P} {gases[gas2N]} {gas3P} {gases[gas3N]} {gas4P} {gases[gas4N]} {gas5P} {gases[gas5N]}"
+            f"{self._id}GM {name} {number}{gas_string}"
         )
         ret = ret.split()
         return dict(zip(LABELS, ret))
@@ -784,6 +843,9 @@ class Device(ABC):
         Returns:
             dict: Deleted gas' number
         """
+        if self._vers and self._vers < 5.00:
+            print("Error: Version earlier than 5v00")
+            return
         LABELS = ["Unit ID", "Deleted Gas Num"]
         ret = await self._device._write_readline(f"{self._id}GD {gasN}")
         ret = ret.split()
@@ -798,6 +860,9 @@ class Device(ABC):
         Returns:
             dict: Gas numbers and their percentages in mixture
         """
+        if self._vers and self._vers < 9.00:
+            print("Error: Version earlier than 9v00")
+            return
         LABELS = [
             "Unit ID",
             "Gas Num",
@@ -856,6 +921,9 @@ class Device(ABC):
         Returns:
             dict: Configuration of totalizer
         """
+        if self._vers and self._vers < 10.00:
+            print("Error: Version earlier than 10v00")
+            return
         LABELS = [
             "Unit ID",
             "Totalizer",
@@ -885,6 +953,9 @@ class Device(ABC):
         Returns:
             dict: Dataframe with totalizer set to zero.
         """
+        if self._vers and self._vers < 8.00:
+            print("Error: Version earlier than 8v00")
+            return
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
             await self.get_df_format()
@@ -906,6 +977,9 @@ class Device(ABC):
         Returns:
             dict: Data frame
         """
+        if self._vers and self._vers < 8.00:
+            print("Error: Version earlier than 8v00")
+            return
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
             await self.get_df_format()
@@ -926,6 +1000,9 @@ class Device(ABC):
         Returns:
             dict: Says if totalizer is enabled or disabled
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Saving"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
@@ -1099,6 +1176,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports setpoint with units
         """
+        if self._vers and self._vers < 9.00:
+            print("Error: Version later than 9v00, running Change Setpoint")
+            return await self.change_setpoint(value)
         LABELS = [
             "Unit ID",
             "Current Setpt",
@@ -1106,8 +1186,6 @@ class FlowController(FlowMeter):
             "Unit Code",
             "Unit Label",
         ]
-        if self._vers and self._vers < 9.00:
-            return await self.change_setpoint(value)
         ret = await self._device._write_readline(f"{self._id}LS {value} {units[unit]}")
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
@@ -1125,7 +1203,11 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe with new setpoint
         """
+        if self._vers and self._vers < 4.33:
+            print("Error: Version earlier than 4v33")
+            return
         if self._vers and self._vers >= 9.00:
+            print("Error: Version later than 9v00, running Query/Change Setpoint")
             return await self.setpoint(value)
         if self._df_format is None:
             await self.get_df_format()
@@ -1151,6 +1233,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports totalizer, batch size, units.
         """
+        if self._vers and self._vers < 10.00:
+            print("Error: Version earlier than 10v00")
+            return
         LABELS = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
         ret = await self._device._write_readline(
             f"{self._id}TB {totalizer} {batch_vol} {units[unit]}"
@@ -1184,6 +1269,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports mode
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Mode"]
         mode = (
             "1"
@@ -1210,6 +1298,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports algorithm
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Algorithm"]
         algo = (
             "2"
@@ -1233,6 +1324,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports new loop variable
         """
+        if self._vers and self._vers < 9.00:
+            print("Error: Version earlier than 9v00")
+            return
         LABELS = ["Unit ID", "Loop Var Val"]
         # If the user did not specify setpoint, assume Setpt
         if var and var[-6:] != "_Setpt":
@@ -1258,7 +1352,15 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports loop variable, units, min, and max
         """
+        if self._vers and self._vers < 9.00:
+            print("Error: Version earlier than 9v00")
+            return
         LABELS = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 9v00, max and min not supported")
+            LABELS = LABELS[:-2]
+            min = ""
+            max = ""
         ret = await self._device._write_readline(
             f"{self._id}LR {statistics[var]} {units[unit]} {min} {max}"
         )
@@ -1279,6 +1381,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports max ramp rate with unit
         """
+        if self._vers and self._vers < 7.11:
+            print("Error: Version earlier than 7v11")
+            return
         LABELS = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
         ret = await self._device._write_readline(f"{self._id}SR {max} {units[unit]}")
         ret = ret.split()
@@ -1300,6 +1405,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports P and D gains
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "P  Gain", "D Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
@@ -1327,6 +1435,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Reports P, I, and D gains
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
@@ -1349,6 +1460,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe with current (not power-up) setpoint
         """
+        if self._vers and self._vers < 8.04:
+            print("Error: Version earlier than 8v04")
+            return
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
             await self.get_df_format()
@@ -1370,6 +1484,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe
         """
+        if self._vers and self._vers < 5.09:
+            print("Error: Version earlier than 5v09")
+            return
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
             await self.get_df_format()
@@ -1393,6 +1510,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Dataframe
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
         if isinstance(up, bool):
             up = "1" if up else "0"
@@ -1426,6 +1546,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Setpoint source mode
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Mode"]
         ret = await self._device._write_readline(f"{self._id}LSS {mode}")
         ret = ret.split()
@@ -1450,6 +1573,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: Offset values
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Init Offset (%)", "Closed Offset (%)"]
         if isinstance(save, bool):
             save = "0 1" if save else "0 0"
@@ -1469,6 +1595,9 @@ class FlowController(FlowMeter):
         Returns:
             dict: If active control is active or not
         """
+        if self._vers and self._vers < 10.05:
+            print("Error: Version earlier than 10v05")
+            return
         LABELS = ["Unit ID", "Active Ctrl"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
@@ -1476,6 +1605,109 @@ class FlowController(FlowMeter):
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
+        return dict(zip(LABELS, ret))
+    
+    async def cancel_valve_hold(self) -> dict:
+        """Removes valve holds on the device
+        
+        Note:
+            **Untested.**
+        
+       Returns:
+            dict: Returns data frame without 'hold' status
+        """
+        if self._df_format is None:
+            await self.get_df_format()
+        gas = gases.get(gas, "")
+        ret = await self._device._write_readline(f"{self._id}C")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
+    
+    async def exhaust(self) -> dict:
+        """Closes upstream valve and opens downstream 100%
+        
+        Note:
+            **Untested.**
+        
+       Returns:
+            dict: Returns data frame with 'hold' status
+        """
+        if self._vers and self._vers < 4.37:
+            print("Error: Version earlier than 4v37")
+            return
+        if self._df_format is None:
+            await self.get_df_format()
+        gas = gases.get(gas, "")
+        ret = await self._device._write_readline(f"{self._id}E")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
+    
+    async def hold_valves(self) -> dict:
+        """Maintains valve position
+        
+        Note:
+            **Untested.**
+        
+       Returns:
+            dict: Returns data frame with 'hold' status
+        """
+        if self._vers and self._vers < 5.07:
+            print("Error: Version earlier than 5v07")
+            return
+        if self._df_format is None:
+            await self.get_df_format()
+        gas = gases.get(gas, "")
+        ret = await self._device._write_readline(f"{self._id}HP")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
+    
+    async def hold_valves_closed(self) -> dict:
+        """Maintains closed valve position
+        
+        Note:
+            **Untested.**
+
+        Returns:
+            dict: Returns data frame with 'hold' status
+        """
+        if self._vers and self._vers < 5.07:
+            print("Error: Version earlier than 5v07")
+            return
+        if self._df_format is None:
+            await self.get_df_format()
+        gas = gases.get(gas, "")
+        ret = await self._device._write_readline(f"{self._id}HC")
+        df = ret.split()
+        for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
+            df[index] = float(df[index])
+        return dict(zip(self._df_format, df))
+    
+    async def query_valve(self) -> dict:
+        """Gives the percent of total electrciity sent to valve(s)
+        
+        Note:
+            **Untested.**
+        
+        Returns:
+            dict: Valve drive percentages
+        """
+        if self._vers and self._vers < 8.18:
+            print("Error: Version earlier than 8v18")
+            return
+        LABELS = ["Unit ID", "Upstream Valve", "Downstream Valve", "Exhaust Valve"]
+        if isinstance(enable, bool):
+            enable = "1" if enable else "0"
+        ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
+        ret = ret.split()
+        for i in range(len(ret)):
+            if not i == 0:
+                ret[i] = float(ret[i])
         return dict(zip(LABELS, ret))
 
     '''
