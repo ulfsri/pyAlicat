@@ -773,15 +773,12 @@ class Device(ABC):
         return dict(zip(self._df_format, df))
 
     async def create_gas_mix(
-        self,
-        name: str = "",
-        number: int = "",
-        gas_dict: dict = {}
+        self, name: str = "", number: int = "", gas_dict: dict = {}
     ) -> dict:
         """Sets custom gas mixture.
 
         This only works with specific gas codes so far
-        
+
         Note:
             **Untested**
 
@@ -790,7 +787,7 @@ class Device(ABC):
             number (int): 236 to 255. Gas is saved to this number
             gas_dict (dict): Gas name : Percentage of Mixture. Maximum of 5 gases. Percent is Molar
                             percent up to 2 decimals. Total percentages must sum to 100.00%
-                            
+
             gas[n]P (float): Molar percent up to 2 decimals. Total percentages must sum to 100.00%
 
                 - n is the number (1 to 5) of the gas in the function call
@@ -810,7 +807,7 @@ class Device(ABC):
         gas_string = ""
         for x in gas_dict:
             gas_string += f" {gas_dict[x]} {gases[x]}"
-        
+
         LABELS = [
             "Unit ID",
             "Gas Num",
@@ -1606,15 +1603,15 @@ class FlowController(FlowMeter):
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(LABELS, ret))
-    
+
     async def cancel_valve_hold(self) -> dict:
         """Removes valve holds on the device
-        
-        Note:
-            **Untested.**
-        
-       Returns:
-            dict: Returns data frame without 'hold' status
+
+         Note:
+             **Untested.**
+
+        Returns:
+             dict: Returns data frame without 'hold' status
         """
         if self._df_format is None:
             await self.get_df_format()
@@ -1624,15 +1621,15 @@ class FlowController(FlowMeter):
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
-    
+
     async def exhaust(self) -> dict:
         """Closes upstream valve and opens downstream 100%
-        
-        Note:
-            **Untested.**
-        
-       Returns:
-            dict: Returns data frame with 'hold' status
+
+         Note:
+             **Untested.**
+
+        Returns:
+             dict: Returns data frame with 'hold' status
         """
         if self._vers and self._vers < 4.37:
             print("Error: Version earlier than 4v37")
@@ -1645,15 +1642,15 @@ class FlowController(FlowMeter):
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
-    
+
     async def hold_valves(self) -> dict:
         """Maintains valve position
-        
-        Note:
-            **Untested.**
-        
-       Returns:
-            dict: Returns data frame with 'hold' status
+
+         Note:
+             **Untested.**
+
+        Returns:
+             dict: Returns data frame with 'hold' status
         """
         if self._vers and self._vers < 5.07:
             print("Error: Version earlier than 5v07")
@@ -1666,10 +1663,10 @@ class FlowController(FlowMeter):
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
-    
+
     async def hold_valves_closed(self) -> dict:
-        """Maintains closed valve position
-        
+        """Maintains closed valve position.
+
         Note:
             **Untested.**
 
@@ -1687,13 +1684,13 @@ class FlowController(FlowMeter):
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
-    
+
     async def query_valve(self) -> dict:
-        """Gives the percent of total electrciity sent to valve(s)
-        
+        """Gives the percent of total electrciity sent to valve(s).
+
         Note:
             **Untested.**
-        
+
         Returns:
             dict: Valve drive percentages
         """

@@ -4,21 +4,28 @@ Author: Grayson Bellamy
 Date: 2024-01-07
 """
 
+import device
+from trio import run
+
 
 class DAQ:
     """Class for managing Alicat devices. Accessible to external API and internal logging module. Wraps and allows communication with inidividual or all devices through wrapper class."""
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self) -> None:
         """Initializes the DAQ.
+
+        Args:
 
         Parameters
         ----------
         config : dict
             The configuration dictionary. {Name : port}
         """
+        global dev_list
+        dev_list = {}
         pass
 
-    def _add_device(self) -> None:
+    async def _add_device(self, port: str, name: str) -> None:
         """Creates and initializes the devices.
 
         Args:
@@ -29,9 +36,14 @@ class DAQ:
             str
             The data from the device.
         """
+        dev = await device.new_device(port)
+        dev_list.update({name: dev})
         pass
 
-    def get(self, id: str) -> str:
+    async def _remove_device(self) -> None:
+        pass
+
+    async def get(self, val: list, id: list = "") -> str:
         """Gets the data from the device.
 
         If id not specified, returns data from all devices.
@@ -40,15 +52,26 @@ class DAQ:
         ----------
         id : str
             The ID of the device.
+        val (str): The value to get from the device.
 
         Returns:
         -------
         str
             The data from the device.
         """
-        pass
+        ret_dict = {}
+        if isinstance(val, str):
+            val = val.split()
+        if not id:
+            for dev in dev_list:
+                ret_dict.update({dev: await dev_list[dev].get(val)})
+        if isinstance(id, str):
+            id = id.split()
+        for i in id:
+            ret_dict.update({i: await dev_list[i].get(val)})
+        return ret_dict
 
-    def set(self, id: str, command: str) -> None:
+    async def set(self, id: str, command: str) -> None:
         """Sets the data of the device.
 
         Parameters
