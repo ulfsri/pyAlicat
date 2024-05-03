@@ -17,41 +17,6 @@ units = codes["units"][0]
 gases = codes["gases"][0]
 
 
-async def new_device(port: str, id: str = "A", **kwargs: Any):
-    """Creates a new device. Chooses appropriate device based on characteristics.
-
-    Args:
-        port (str): The port the device is connected to.
-        id (str): The id of the device. Default is "A".
-        **kwargs: Any
-
-    Returns:
-        Device: The new device.
-    """
-    if port.startswith("/dev/"):
-        device = SerialDevice(port, **kwargs)
-    dev_info = await device._write_readall(f"{id}??M*")
-    INFO_KEYS = [
-        "manufacturer",
-        "website",
-        "phone",
-        "website",
-        "model",
-        "serial",
-        "manufactured",
-        "calibrated",
-        "calibrated_by",
-        "software",
-    ]
-    dev_info = dict(
-        zip(INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
-    )
-    for cls in all_subclasses(Device):
-        if cls.is_model(dev_info["model"]):
-            return cls(device, dev_info, id, **kwargs)
-    raise ValueError(f"Unknown device model: {dev_info['model']}")
-
-
 def all_subclasses(cls) -> set:
     """Returns all subclasses of a class.
 
@@ -90,6 +55,45 @@ class Device(ABC):
             .findall(dev_info["software"])[0]
             .replace("v", ".")
         )
+
+    @classmethod
+    async def new_device(cls, port: str, id: str = "A", **kwargs: Any):
+        """Creates a new device. Chooses appropriate device based on characteristics.
+
+        Args:
+            port (str): The port the device is connected to.
+            id (str): The id of the device. Default is "A".
+            **kwargs: Any
+
+        Returns:
+            Device: The new device.
+        """
+        if port.startswith("/dev/"):
+            device = SerialDevice(port, **kwargs)
+        dev_info = await device._write_readall(f"{id}??M*")
+        if not dev_info:
+            raise ValueError("No device found on port")
+        INFO_KEYS = [
+            "manufacturer",
+            "website",
+            "phone",
+            "website",
+            "model",
+            "serial",
+            "manufactured",
+            "calibrated",
+            "calibrated_by",
+            "software",
+        ]
+        dev_info = dict(
+            zip(INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
+        )
+        for cls in all_subclasses(Device):
+            if cls.is_model(dev_info["model"]):
+                new_cls = cls(device, dev_info, id, **kwargs)
+                await new_cls.get_df_format()
+                return new_cls
+        raise ValueError(f"Unknown device model: {dev_info['model']}")
 
     async def poll(self) -> dict:
         """Gets the current measurements of the device in defined data frame format.
@@ -773,7 +777,7 @@ class Device(ABC):
         return dict(zip(self._df_format, df))
 
     async def create_gas_mix(
-        self, name: str = "", number: int = "", gas_dict: dict = {}
+        self, name: str = "", number: int = "", gas_dict: dict[str, float] = {}
     ) -> dict:
         """Sets custom gas mixture.
 
@@ -785,7 +789,7 @@ class Device(ABC):
         Args:
             name (str): Name of custom mixture
             number (int): 236 to 255. Gas is saved to this number
-            gas_dict (dict): Gas name : Percentage of Mixture. Maximum of 5 gases. Percent is Molar
+            gas_dict (dict[str, float]): Gas name : Percentage of Mixture. Maximum of 5 gases. Percent is Molar
                             percent up to 2 decimals. Total percentages must sum to 100.00%
 
             gas[n]P (float): Molar percent up to 2 decimals. Total percentages must sum to 100.00%
@@ -1605,9 +1609,9 @@ class FlowController(FlowMeter):
         return dict(zip(LABELS, ret))
 
     async def cancel_valve_hold(self) -> dict:
-        """Removes valve holds on the device
+        """Removes valve holds on the device.
 
-         Note:
+        Note:
              **Untested.**
 
         Returns:
@@ -1623,9 +1627,9 @@ class FlowController(FlowMeter):
         return dict(zip(self._df_format, df))
 
     async def exhaust(self) -> dict:
-        """Closes upstream valve and opens downstream 100%
+        """Closes upstream valve and opens downstream 100%.
 
-         Note:
+        Note:
              **Untested.**
 
         Returns:
@@ -1644,9 +1648,9 @@ class FlowController(FlowMeter):
         return dict(zip(self._df_format, df))
 
     async def hold_valves(self) -> dict:
-        """Maintains valve position
+        """Maintains valve position.
 
-         Note:
+        Note:
              **Untested.**
 
         Returns:
@@ -1745,12 +1749,16 @@ I'm going to double check the new set does exactly what we want before I delete 
         """
         resp = {}
         for meas in list(comm.keys()):
+            if type(comm[meas]) is not list:
+                comm[meas] = [comm[meas]]
+            while len(comm[meas]) < 2:
+                comm[meas].append("")
             upper_meas = str(meas).upper()
             # Set gas - Param1 = gas: str = "", Param2 = save: bool = ""
             if upper_meas == "GAS":
                 resp.update(await self.gas(str(comm[meas][0]), str(comm[meas][1])))
             # Set setpoint - Param1 = value: float = "", Param2 = unit: str = ""
-            elif upper_meas in ["SETPOINT", "STPT"]:
+            elif upper_meas in ["SETPOINT", "SETPT"]:
                 resp.update(await self.setpoint(str(comm[meas][0]), str(comm[meas][1])))
             # Set loop control variable - Param1 = statistic: str = ""
             elif upper_meas in ["LOOP", "LOOP CTRL"]:
@@ -1773,7 +1781,7 @@ I'm going to double check the new set does exactly what we want before I delete 
             measurements = measurements.split()
         # Request
         for meas in measurements:
-            if meas in statistics:
+            if meas and meas in statistics:
                 reqs.append(meas)
             elif meas.upper() == "GAS":
                 resp.update(await self.gas())

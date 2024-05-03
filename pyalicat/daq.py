@@ -14,50 +14,78 @@ class DAQ:
     def __init__(self) -> None:
         """Initializes the DAQ.
 
-        Args:
+        TODO: Pass dictionary of names and addresses to initialize devices. Same async issue.
 
-        Parameters
-        ----------
-        config : dict
-            The configuration dictionary. {Name : port}
         """
         global dev_list
         dev_list = {}
-        pass
 
-    async def _add_device(self, port: str, name: str) -> None:
+        """
+        for name in devs:
+            dev = device.new_device(devs[name])
+            dev_list.update({name: dev})
+        """
+        return
+
+    @classmethod
+    async def init(cls, devs: dict) -> "DAQ":
+        """Initializes the DAQ.
+
+        Args:
+            devs (dict): The dictionary of devices to add. Name:Port
+
+        Returns:
+            DAQ: The DAQ object.
+        """
+        daq = cls()
+        await daq.add_device(devs)
+        return daq
+
+    async def add_device(self, devs: dict) -> None:
         """Creates and initializes the devices.
 
         Args:
-            id : str
-            The ID of the device.
+            devs (dict): The dictionary of devices to add. Name:Port
+        """
+        if isinstance(devs, str):
+            devs = devs.split()
+            # This works if the string is the format "Name Port"
+            devs = {devs[0]: devs[1]}
+        for name in devs:
+            dev = await device.Device.new_device(devs[name])
+            dev_list.update({name: dev})
+        return
+
+    async def remove_device(self, name: list) -> None:
+        """Creates and initializes the devices.
+
+        Args:
+            name (list): The list of devices to remove.
+        """
+        for n in name:
+            await dev_list[n]._device.close()
+            del dev_list[n]
+        return
+
+    async def dev_list(self) -> dict:
+        """Displays the list of devices.
 
         Returns:
-            str
-            The data from the device.
+            dict: The list of devices and their objects.
         """
-        dev = await device.new_device(port)
-        dev_list.update({name: dev})
-        pass
+        return dev_list
 
-    async def _remove_device(self) -> None:
-        pass
-
-    async def get(self, val: list, id: list = "") -> str:
+    async def get(self, val: list = "", id: list = "") -> dict:
         """Gets the data from the device.
 
         If id not specified, returns data from all devices.
 
-        Parameters
-        ----------
-        id : str
-            The ID of the device.
-        val (str): The value to get from the device.
+        Args:
+           val (list): The values to get from the device.
+           id (list): The IDs of the devices to read from. If not specified, returns data from all devices.
 
         Returns:
-        -------
-        str
-            The data from the device.
+            dict: The dictionary of devices with the data for each value.
         """
         ret_dict = {}
         if isinstance(val, str):
@@ -71,17 +99,27 @@ class DAQ:
             ret_dict.update({i: await dev_list[i].get(val)})
         return ret_dict
 
-    async def set(self, id: str, command: str) -> None:
+    async def set(self, command: dict, id: str = "") -> None:
         """Sets the data of the device.
 
-        Parameters
-        ----------
-        id : str
-            The ID of the device.
-        command : str
-            The command to send to the device.
+        Args:
+           command (dict): The commands and their relevant parameters to send to the device.
+           id (list): The IDs of the devices to read from. If not specified, returns data from all devices.
+
+        Returns:
+            dict: The dictionary of devices with the data for each value.
         """
-        pass
+        ret_dict = {}
+        if isinstance(command, str):
+            command = command.split()
+        if not id:
+            for dev in dev_list:
+                ret_dict.update({dev: await dev_list[dev].set(command)})
+        if isinstance(id, str):
+            id = id.split()
+        for i in id:
+            ret_dict.update({i: await dev_list[i].set(command)})
+        return ret_dict
 
 
 class DAQLogging:

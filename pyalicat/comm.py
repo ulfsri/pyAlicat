@@ -148,6 +148,7 @@ class SerialDevice(CommDevice):
         else:
             with trio.move_on_after(self.timeout / 1000):
                 await self.ser_devc.send_all(command.encode("ascii") + self.eol)
+        return None
 
     async def _readline(self) -> str:
         """Reads the serial communication until end-of-line character reached.
@@ -170,31 +171,32 @@ class SerialDevice(CommDevice):
         self.isOpen = False
         return line.decode("ascii")
 
-    async def _write_readall(self, command: str) -> list:
+    async def _write_readall(self, command: str, timeout: int = None) -> list:
         """Write command and read until timeout reached.
 
         Args:
             command (str): The serial communication.
+            timeout (int): The timeout of the Alicat device in ms.
 
         Returns:
             list: List of lines read from the device.
         """
+        timeout = self.timeout if timeout is None else timeout
         async with self.ser_devc:
             self.isOpen = True
             await self._write(command)
             line = bytearray()
             arr_line = []
-            while True:
-                c = None
-                with trio.move_on_after(self.timeout / 1000):
+            with trio.move_on_after(timeout / 1000):
+                while True:
                     c = await self._read(1)
+                    if c is None:
+                        break
                     if c == self.eol:
                         arr_line.append(line.decode("ascii"))
                         line = bytearray()
                     else:
                         line += c
-                if c is None:
-                    break
         self.isOpen = False
         return arr_line
 
