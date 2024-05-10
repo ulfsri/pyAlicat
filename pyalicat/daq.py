@@ -31,6 +31,9 @@ class DAQ:
     async def init(cls, devs: dict[str, str]) -> "DAQ":
         """Initializes the DAQ.
 
+        Example:
+            Daq = run(DAQ.init, {'A':'/dev/ttyUSB0', 'B':'/dev/ttyUSB1'})
+
         Args:
             devs (dict[str, str]): The dictionary of devices to add. Name:Port
 
@@ -82,6 +85,12 @@ class DAQ:
 
         If id not specified, returns data from all devices.
 
+        Example:
+            df = run(Daq.get, ["Mass_Flow", "Gas"], ['A', 'B'])
+            df = run(Daq.get, ["Mass_Flow", "Gas"])
+            df = run(Daq.get, ["Mass_Flow", "Gas"], 'B')
+            df = run(Daq.get, "Setpt")
+
         Args:
            val (list): The values to get from the device.
            id (list): The IDs of the devices to read from. If not specified, returns data from all devices.
@@ -103,6 +112,11 @@ class DAQ:
 
     async def set(self, command: dict[str, str | float], id: str = "") -> None:
         """Sets the data of the device.
+
+        Example:
+            df = run(Daq.set, {"Setpt": 50})
+            df = run(Daq.set, {"Setpt": 50}, ['A', 'B'])
+            df = run(Daq.set, {"Setpt": 50}, ["B"])
 
         Args:
            command (dict): The commands and their relevant parameters to send to the device.

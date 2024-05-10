@@ -60,6 +60,9 @@ class Device(ABC):
     async def new_device(cls, port: str, id: str = "A", **kwargs: Any):
         """Creates a new device. Chooses appropriate device based on characteristics.
 
+        Example:
+            dev = run(Device.new_device, '/dev/ttyUSB0')
+
         Args:
             port (str): The port the device is connected to.
             id (str): The id of the device. Default is "A".
@@ -98,6 +101,9 @@ class Device(ABC):
     async def poll(self) -> dict[str, str | float]:
         """Gets the current measurements of the device in defined data frame format.
 
+        Example:
+            df = run(dev.poll)
+
         Returns:
             dict[str, str | float]: The current measurements of the device from defined data frame format.
         """
@@ -114,6 +120,9 @@ class Device(ABC):
         self, stats: list[str] = [], time: int = 1
     ) -> dict[str, str | float]:
         """Gets requested measurements averaged over specified time.
+
+        Example:
+            df = run(dev.request, ['Mass_Flow', 'Abs_Press'], 1000)
 
         Args:
             stats (list[str]): Names of the statistics to get. Maximum of 13 statistics in one call.
@@ -145,6 +154,9 @@ class Device(ABC):
     async def stop_stream(self, new_id: str = None) -> None:
         """Stops streaming data from device.
 
+        Example:
+            df = run(dev.stop_stream, 'B')
+
         Args:
             new_id (str): New device ID if desired. Will default to current ID if not given.
         """
@@ -156,6 +168,9 @@ class Device(ABC):
 
     async def gas(self, gas: str = "", save: bool = "") -> dict[str, str]:
         """Gets/Sets the gas of the device.
+
+        Example:
+            df = run(dev.gas, 'N2', True)
 
         Note:
             Devices with firmware versions 10.05 or greater should use this method
@@ -182,6 +197,9 @@ class Device(ABC):
     async def _set_gas(self, gas: str = "") -> dict[str, str]:
         """Sets the gas of the device.
 
+        Example:
+            df = run(dev._set_gas, 'N2')
+
         Note:
             Devices with firmware versions lower than 10v05 should use this method
 
@@ -206,6 +224,9 @@ class Device(ABC):
     async def gas_list(self) -> dict[str, str]:
         """Gets the list of available gases for the device.
 
+        Example:
+            df = run(dev.gas_list)
+
         Returns:
             dict[str, str]: List of all gas codes and their names.
         """
@@ -220,6 +241,9 @@ class Device(ABC):
         """Tares the absolute pressure of the device, zeros out the absolute pressure reference point.
 
         Should only be used when no flow and line is not pressurized.
+
+        Example:
+            df = run(dev.tare_abs_P)
 
         Note:
             **Untested.**
@@ -241,6 +265,9 @@ class Device(ABC):
 
         Should only be used when no flow and at operation pressure.
 
+        Example:
+            df = run(dev.tare_flow)
+
         Note:
             **Untested.**
 
@@ -261,6 +288,9 @@ class Device(ABC):
 
         Should only be used when no flow and open to atmosphere.
 
+        Example:
+            df = run(dev.tare_guage_P)
+
         Note:
             **Untested.**
 
@@ -280,6 +310,9 @@ class Device(ABC):
         self, enable: bool = "", delay: float = ""
     ) -> dict[str, str | float]:
         """Gets/Sets if the controller auto tares.
+
+        Example:
+            df = run(dev.auto_tare, False, 0.0)
 
         Note:
             **Untested: Sets if the controller auto tares.**
@@ -306,6 +339,9 @@ class Device(ABC):
 
     async def configure_data_frame(self, format: int = "") -> dict[str, str | float]:
         """Sets data frame's format.
+
+        Example:
+            df = run(dev.configure_data_frame, 0)
 
         Args:
             format (int): What format to set the data frame to.
@@ -338,6 +374,9 @@ class Device(ABC):
     ) -> dict[str, str]:
         """Gets/Sets units for desired statistics.
 
+        Example:
+            df = run(dev.engineering_units, "Mass_Flow", False, "SCCM", False)
+
         Note:
             **Setting is Nonfunctional**
 
@@ -347,8 +386,8 @@ class Device(ABC):
             unit (str): Sets unit for statistic
             override (bool): Overwrites any special rules for group changes.
 
-                - 0 for not changing special rules
-                - 1 for applying the new units to all statistics in the group.
+                - False for not changing special rules
+                - True for applying the new units to all statistics in the group.
 
         Returns:
             dict[str, str]: Responds with unit
@@ -370,9 +409,12 @@ class Device(ABC):
     async def flow_press_avg(
         self,
         stat_val: str,
-        avg_time: int,
+        avg_time: int = "",
     ) -> dict[str, str | float]:
         """Gets/Set the length of time a statistic is averaged over.
+
+        Example:
+            df = run(dev.flow_press_avg, "Mass_Flow")
 
         Args:
             stat_val (str): Desired statistic to get average/set time
@@ -399,6 +441,9 @@ class Device(ABC):
     ) -> dict[str, str | float]:
         """Gets measurement range of given statistic.
 
+        Example:
+            df = run(dev.full_scale_val, 'Mass_Flow', 'SCCM')
+
         Args:
             stat_val (str): Desired statistic to get range
             unit (str): Units of range. Defaults if left blank.
@@ -419,6 +464,9 @@ class Device(ABC):
 
     async def power_up_tare(self, enable: bool = "") -> dict[str, str]:
         """Gets/Sets if device tares on power-up.
+
+        Example:
+            df = run(dev.power_up_tare, False)
 
         Args:
             enable (bool): If Enabled, 0.25 second after sensors stable. Close loop delay, valves stay closed
@@ -441,6 +489,9 @@ class Device(ABC):
     async def data_frame(self) -> str:
         """Gets info about current data frame.
 
+        Example:
+            df = run(dev.data_frame)
+
         Returns:
             str: table that outlines data frame format
         """
@@ -456,6 +507,9 @@ class Device(ABC):
         """Gets/Sets standard or normal pressure reference point.
 
         To get Normal pressure reference point, set stp to N.
+
+        Example:
+            df = run(dev.stp_press, 'S', 'PSIA', 14.69595)
 
         Args:
             stp (str): S for standard pressure, N for normal
@@ -487,6 +541,9 @@ class Device(ABC):
 
         To get Normal temperature reference point, set stp to N.
 
+        Example:
+            df = run(dev.stp_temp, 'S', 'C', 25.0)
+
         Args:
             stp (str): S for standard temperature, N for normal
             unit (str): Temperature units
@@ -513,6 +570,9 @@ class Device(ABC):
     async def zero_band(self, zb: float = "") -> dict[str, str | float]:
         """Gets/Sets the zero band of the device.
 
+        Example:
+            df = run(dev.zero_band, 0.0)
+
         Args:
             zb (float): % of full-scale readings process must exceed before device reports readings
 
@@ -538,6 +598,9 @@ class Device(ABC):
         self, primary: str = "0", val: str = "", unit: str = ""
     ) -> dict[str, str]:
         """Gets/Sets the source of the analog output.
+
+        Example:
+            df = run(dev.analog_out_source, "PRIMARY", "Mass_Flow", "SCCM")
 
         Args:
             primary (str): Primary or secondary analog output
@@ -581,6 +644,9 @@ class Device(ABC):
     async def baud(self, new_baud: int = "") -> dict[str, str | float]:
         """Gets/Sets the baud rate of the device.
 
+        Example:
+            df = run(dev.baud, 9600)
+
         Note:
             Ensure COM is connected.
 
@@ -609,8 +675,11 @@ class Device(ABC):
     async def blink(self, dur: int = "") -> dict[str, str]:
         """Blinks the device. Gets the blinking state.
 
+        Example:
+            df = run(dev.blink, 10)
+
         Args:
-           dur (int): Duration devices flashes.
+           dur (int): Duration devices flashes in seconds.
             - 0 stops blinking.
             - -1 to flash indefinitely.
 
@@ -630,6 +699,9 @@ class Device(ABC):
     async def change_unit_id(self, new_id: str = "") -> None:
         """Sets the unit ID of the device.
 
+        Example:
+            df = run(dev.change_unit_id, "B")
+
         Note:
             **This changes the ID, but the device stops responding**.
 
@@ -643,6 +715,9 @@ class Device(ABC):
     async def firmware_version(self) -> dict[str, str]:
         """Gets the firmware version of the device.
 
+        Example:
+            df = run(dev.firmware_version)
+
         Returns:
             dict[str, str]: Current firmware vesion and its date of creation
         """
@@ -655,6 +730,9 @@ class Device(ABC):
 
     async def lock_display(self) -> dict[str, str | float]:
         """Disables buttons on front of the device.
+
+        Example:
+            df = run(dev.lock_display)
 
         Returns:
             dict[str, str | float]: Data frame with lock status enabled
@@ -678,6 +756,9 @@ class Device(ABC):
 
     async def remote_tare(self, actions: list[str] = []) -> dict[str, str | float]:
         """Gets/Sets the remote tare value.
+
+        Example:
+            df = run(dev.remote_tare, ["Primary Press", "Secondary Press"])
 
         Note:
             This usually only works on meters and gauges. Not all devices support this.
@@ -715,6 +796,9 @@ class Device(ABC):
 
         Removes any calibrations.
 
+        Example:
+            df = run(dev.restore_factory_settings)
+
         Note:
             **Untested.**
 
@@ -732,6 +816,9 @@ class Device(ABC):
 
         Gets the user data from the string is slot.
         Sets the user data in slot to val.
+
+        Example:
+            df = run(dev.user_data, 0, "New Value")
 
         Args:
             slot (int): Slot number, 0 to 3
@@ -754,6 +841,9 @@ class Device(ABC):
     async def streaming_rate(self, interval: int = "") -> dict[str, str | float]:
         """Gets/Sets the streaming rate of the device.
 
+        Example:
+            df = run(dev.streaming_rate, 50)
+
         Args:
             interval (int): Streaming rate in milliseconds between data frames
 
@@ -771,6 +861,9 @@ class Device(ABC):
 
     async def unlock_display(self) -> dict[str, str | float]:
         """Enables buttons on front of the device.
+
+        Example:
+            df = run(dev.unlock_display)
 
         Returns:
             dict[str, str | float]: Data frame with LCK disabled
@@ -790,6 +883,9 @@ class Device(ABC):
         """Sets custom gas mixture.
 
         This only works with specific gas codes so far
+
+        Example:
+            df = run(dev.query_gas_mix, "My Gas", 255, {"O2": 20.0, "N2": 80.0})
 
         Note:
             **Untested**
@@ -843,6 +939,9 @@ class Device(ABC):
     async def delete_gas_mix(self, gasN: str = "") -> dict[str, float]:
         """Deletes custom gas mixture.
 
+        Example:
+            df = run(dev.delete_gas_mix, 255)
+
         Note:
             **Nonfunctional**
 
@@ -862,6 +961,9 @@ class Device(ABC):
 
     async def query_gas_mix(self, gasN: int = "") -> dict[str, str]:
         """Gets percentages of gases in mixture.
+
+        Example:
+            df = run(dev.query_gas_mix, 255)
 
         Args:
            gasN (int): Number of the custom gas to analyze
@@ -907,9 +1009,12 @@ class Device(ABC):
     ) -> dict[str, str]:
         """Enables/Disables and Configures totalizer.
 
+        Example:
+            df = run(dev.config_totalizer, totalizer=1, 1, -1, -1, 10, 0) # For ZTotalizer 1, disable, do not change, do not change, 10 digits, 0 decimals
+
         Args:
             totalizer (int): 1 or 2, which totalizer used
-            flow_stat_val (str): Statistic to measure. Use -1 to not change statistic
+            flow_stat_val (str): Statistic to measure. Use -1 to not change statistic, use 1 to disable
             mode (int): Manages how to totalizer accumulates flow. -1 to 3
 
                 - -1 = Do not change
@@ -953,6 +1058,9 @@ class Device(ABC):
     async def reset_totalizer(self, totalizer: int = 1) -> dict[str, str | float]:
         """Returns totalizer count to zero and restarts timer.
 
+        Example:
+            df = run(dev.reset_totalizer, totalizer=1)
+
         Note:
             **Untested.**
 
@@ -976,6 +1084,9 @@ class Device(ABC):
 
     async def reset_totalizer_peak(self, totalizer: int = 1) -> dict[str, str | float]:
         """Resets peak flow rate that has been measured since last reset.
+
+        Example:
+            df = run(dev.reset_totalizer_peak, totalizer=1)
 
         Note:
             **Untested.**
@@ -1003,6 +1114,9 @@ class Device(ABC):
 
         If enabled, restore last saved totalizer on power-up.
 
+        Example:
+            df = run(dev.save_totalizer, enable=True)
+
         Args:
            enable (bool): Whether to enable or disable saving totalizer values on startup
 
@@ -1023,6 +1137,9 @@ class Device(ABC):
 
     async def get_df_format(self) -> list[list[str]]:
         """Gets the format of the current dataframe format of the device.
+
+        Example:
+            df = run(dev.get_df_format)
 
         Returns:
             list[list[str]]: Dataframe format
@@ -1095,14 +1212,14 @@ class Device(ABC):
             i += 1
         return resp
 
-    async def set(self, comm: dict[str, str | float]) -> dict[str, str | float]:
+    async def set(self, comm: dict[str, str]) -> dict[str, str]:
         """Sets the values of measurements for the device.
 
         Args:
-            comm (dict[str, str | float]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
+            comm (dict[str, str]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
 
         Returns:
-            dict[str, str | float]: response of setting function
+            dict[str, str: response of setting function
         """
         resp = {}
         for meas in list(comm.keys()):
@@ -1177,6 +1294,9 @@ class FlowController(FlowMeter):
     ) -> dict[str, str | float]:
         """Gets/Sets the setpoint of the device.
 
+        Example:
+            df = run(dev.setpoint, 50, "SCCM")
+
         Note:
             Devices with firmware versions 9.00 or greater should use this method
 
@@ -1204,6 +1324,9 @@ class FlowController(FlowMeter):
 
     async def _change_setpoint(self, value: float = "") -> dict[str, str | float]:
         """Changes the setpoint of the device.
+
+        Example:
+            df = run(dev._change_setpoint, 50)
 
         Note:
             Devices with firmware versions less than 9.00 should use this method
@@ -1233,6 +1356,9 @@ class FlowController(FlowMeter):
     ) -> dict[str, str | float]:
         """Directs controller to flow a set amount then close the valve.
 
+        Example:
+            df = run(dev.batch, 1, 100, "SCCM")
+
         Note:
             **Untested.**
 
@@ -1258,6 +1384,9 @@ class FlowController(FlowMeter):
     ) -> dict[str, str | float]:
         """Gets/Sets the range the controller allows for drift around setpoint.
 
+        Example:
+            df = run(dev.deadband_mode, False, 0)
+
         Args:
             save (bool): Whether to save the deadband limit on startup
             limit (float): Value of deadband limit
@@ -1275,6 +1404,9 @@ class FlowController(FlowMeter):
 
     async def deadband_mode(self, mode: str = "") -> dict[str, str]:
         """Gets/Sets the reaction the controller has for values around setpoint.
+
+        Example:
+            df = run(dev.deadband_mode, "Close")
 
         Args:
             mode (str): "Hold" or "Current" holds valve and current positions until outside the limits. "Close" closes valve until outside the limits.
@@ -1305,6 +1437,9 @@ class FlowController(FlowMeter):
         - algorithm 1 = PD/PDF
         - algorithm 2 = PD2I
 
+        Example:
+            df = run(dev.loop_control_alg, "PD/PDF")
+
         Args:
             algo (str): Algorithm used for loop control. "PD", "PDF", "PD/PDF", "PD2I"
 
@@ -1331,6 +1466,9 @@ class FlowController(FlowMeter):
     async def loop_control_var(self, var: str = "") -> dict[str, str]:
         """Sets the statistic the setpoint controls.
 
+        Example:
+            df = run(dev.loop_control_var, 'Mass_Flow_Setpt')
+
         Args:
             var (str): Desired statistic
 
@@ -1355,6 +1493,9 @@ class FlowController(FlowMeter):
         self, var: str = "", unit: str = "", min: float = "", max: float = ""
     ) -> dict[str, str | float]:
         """Gets/Sets the control range of the statistic the setpoint controls.
+
+        Example:
+            df = run(dev.loop_control_gains, 'Mass_Flow_Setpt', 'SCCM', 0, 500)
 
         Args:
             var (str): Desired statistic to be queried/modified
@@ -1389,6 +1530,9 @@ class FlowController(FlowMeter):
     ) -> dict[str, str | float]:
         """Gets/Sets how fast controller moves to new setpoint.
 
+        Example:
+            df = run(dev.pmax_ramp_rate, 0, 'SCCM/s')
+
         Args:
             max (float): Indicates step size for movement to setpoint. 0 to disable ramping (still must include unit)
             unit (str): unit for rate
@@ -1411,6 +1555,9 @@ class FlowController(FlowMeter):
         """Gets/Sets the proportional and intregral gains of the PD/PDF controller.
 
         Manual is incorrect, this does not have an insignifcant 0 in the command
+
+        Example:
+            df = run(dev.pd2i_gains, False, 502, 5632)
 
         Args:
             save (bool): Whether to save gains on power-up
@@ -1437,6 +1584,9 @@ class FlowController(FlowMeter):
         self, save: bool = "", p_gain: int = "", i_gain: int = "", d_gain: int = ""
     ) -> dict[str, str | float]:
         """Gets/Sets the proportional, intregral, and derivative gains of the PD2I controller.
+
+        Example:
+            df = run(dev.pd2i_gains, False, 502, 0, 5632)
 
         Note:
             **Setting is nonfunctional**
@@ -1466,6 +1616,9 @@ class FlowController(FlowMeter):
     async def power_up_setpoint(self, val: float = "") -> dict[str, str | float]:
         """Enables immediate setpoint on power-up.
 
+        Example:
+            df = run(dev.power_up_setpoint, 100) # Setpoint of 100 on startup
+
         Note:
             **Untested.**
 
@@ -1489,6 +1642,9 @@ class FlowController(FlowMeter):
 
     async def overpressure(self, limit: float = "") -> dict[str, str | float]:
         """Sets the overpressure limit of the device. Flow is stopped if pressure exceeds.
+
+        Example:
+            df = run(dev.overpressure, 0) # Disables overpressure
 
         Note:
             **Untested.**
@@ -1515,6 +1671,9 @@ class FlowController(FlowMeter):
         self, up: bool = "", down: bool = "", zero: bool = "", power_up: bool = ""
     ) -> dict[str, str]:
         """Gets/Sets the ramp settings of the device.
+
+        Example:
+            df = run(dev.ramp, True, True, True, True) # Enable 'follow ramp rate' for all settings
 
         Args:
             up (bool): When setpoint is made higher. Disabled = immediate move. Enabled = Follow ramp rate
@@ -1548,6 +1707,9 @@ class FlowController(FlowMeter):
     async def setpoint_source(self, mode: str = "") -> dict[str, str]:
         """Gets/Sets how the setpoint is given to the controller.
 
+        Example:
+            df = run(dev.setpoint_source, "A") # Setpoint from analog input
+
         Note:
             **This appears to function for the meter for some reason**
 
@@ -1580,6 +1742,9 @@ class FlowController(FlowMeter):
     ) -> dict[str, str | float]:
         """Gets/Sets how much power driven to valve when first opened or considered closed.
 
+        Example:
+            df = run(dev.valve_offset, False, 50, 10)  # (Do not save, 50% to open, 10% for closed
+
         Args:
             save (bool): Whether to save offset values on power-up
             initial_offset (float): 0-100% of total electrcity to first open closed valve
@@ -1604,6 +1769,9 @@ class FlowController(FlowMeter):
     async def zero_pressure_control(self, enable: bool = "") -> dict[str, str]:
         """Gets/Sets how controller reacts to 0 Pressure setpoint.
 
+        Example:
+            df = run(dev.zero_pressure_control, True)
+
         Args:
             enable (bool): If disabled, valve opens/closes completely. If enabled, uses close-loop
 
@@ -1625,6 +1793,9 @@ class FlowController(FlowMeter):
     async def cancel_valve_hold(self) -> dict[str, str | float]:
         """Removes valve holds on the device.
 
+        Example:
+            df = run(dev.cancel_valve_hold)
+
         Note:
              **Untested.**
 
@@ -1642,6 +1813,9 @@ class FlowController(FlowMeter):
 
     async def exhaust(self) -> dict[str, str | float]:
         """Closes upstream valve and opens downstream 100%.
+
+        Example:
+            df = run(dev.exhaust)
 
         Note:
             **Untested.**
@@ -1664,6 +1838,9 @@ class FlowController(FlowMeter):
     async def hold_valves(self) -> dict[str, str | float]:
         """Maintains valve position.
 
+        Example:
+            df = run(dev.hold_valves)
+
         Note:
              **Untested.**
 
@@ -1685,6 +1862,9 @@ class FlowController(FlowMeter):
     async def hold_valves_closed(self) -> dict[str, str | float]:
         """Maintains closed valve position.
 
+        Example:
+            df = run(dev.hold_valves_closed)
+
         Note:
             **Untested.**
 
@@ -1705,6 +1885,9 @@ class FlowController(FlowMeter):
 
     async def query_valve(self) -> dict[str, str | float]:
         """Gives the percent of total electrciity sent to valve(s).
+
+        Example:
+            df = run(dev.query_valve)
 
         Note:
             **Untested.**
@@ -1755,6 +1938,9 @@ I'm going to double check the new set does exactly what we want before I delete 
     async def set(self, comm: dict[str, str | float]) -> dict[str, str | float]:
         """Sets the values of measurements for the device.
 
+        Example:
+            df = run(dev.set, {"Setpt": 50})
+
         Args:
             comm (dict[str, str | float]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
 
@@ -1781,6 +1967,9 @@ I'm going to double check the new set does exactly what we want before I delete 
 
     async def get(self, measurements: list[str] = ["@"]) -> dict[str, str | float]:
         """Gets the value of a measurement from the device.
+
+        Example:
+            df = run(dev.get, ["Setpt", "Mass_Flow"])
 
         Args:
             measurements (list[str]): List of measurements to get
