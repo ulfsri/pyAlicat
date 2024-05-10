@@ -95,11 +95,11 @@ class Device(ABC):
                 return new_cls
         raise ValueError(f"Unknown device model: {dev_info['model']}")
 
-    async def poll(self) -> dict:
+    async def poll(self) -> dict[str, str | float]:
         """Gets the current measurements of the device in defined data frame format.
 
         Returns:
-            dict: The current measurements of the device from defined data frame format.
+            dict[str, str | float]: The current measurements of the device from defined data frame format.
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -110,15 +110,17 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def request(self, stats: list = [], time: int = 1) -> dict:
+    async def request(
+        self, stats: list[str] = [], time: int = 1
+    ) -> dict[str, str | float]:
         """Gets requested measurements averaged over specified time.
 
         Args:
-            stats (list): Names of the statistics to get. Maximum of 13 statistics in one call.
+            stats (list[str]): Names of the statistics to get. Maximum of 13 statistics in one call.
             time (int): The time to average over in milliseconds. Default is 1.
 
         Returns:
-            dict: The requested statistics.
+            dict[str, str | float]: The requested statistics.
         """
         if len(stats) > 13:
             print("Too many statistics requested, discarding excess")
@@ -152,7 +154,7 @@ class Device(ABC):
         self.id = new_id
         return
 
-    async def gas(self, gas: str = "", save: bool = "") -> dict:
+    async def gas(self, gas: str = "", save: bool = "") -> dict[str, str]:
         """Gets/Sets the gas of the device.
 
         Note:
@@ -163,7 +165,7 @@ class Device(ABC):
             save (bool): If true, will apply this gas on powerup.
 
         Returns:
-            dict: Reports the gas and its code and names.
+            dict[str, str]: Reports the gas and its code and names.
         """
         LABELS = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
         if gas and self._vers and self._vers < 10.05:
@@ -177,7 +179,7 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
         return dict(zip(LABELS, ret.split()))
 
-    async def _set_gas(self, gas: str = "") -> dict:
+    async def _set_gas(self, gas: str = "") -> dict[str, str]:
         """Sets the gas of the device.
 
         Note:
@@ -187,7 +189,7 @@ class Device(ABC):
             gas (str): Name of the gas to set on the device.
 
         Returns:
-            dict: Dataframe with new gas.
+            dict[str, str]: Dataframe with new gas.
         """
         if self._vers and self._vers >= 10.05:
             print("Error: Version later than 10v05, running Active Gas")
@@ -201,11 +203,11 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def gas_list(self) -> dict:
+    async def gas_list(self) -> dict[str, str]:
         """Gets the list of available gases for the device.
 
         Returns:
-            dict: List of all gas codes and their names.
+            dict[str, str]: List of all gas codes and their names.
         """
         ret = {}
         resp = await self._device._write_readall(f"{self._id}??G*")
@@ -214,7 +216,7 @@ class Device(ABC):
             ret[gas[1]] = gas[2]
         return ret
 
-    async def tare_abs_P(self) -> dict:
+    async def tare_abs_P(self) -> dict[str, str | float]:
         """Tares the absolute pressure of the device, zeros out the absolute pressure reference point.
 
         Should only be used when no flow and line is not pressurized.
@@ -223,7 +225,7 @@ class Device(ABC):
             **Untested.**
 
         Returns:
-            dict: Dataframe with zero absolute pressure
+            dict[str, str | float]: Dataframe with zero absolute pressure
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -234,7 +236,7 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def tare_flow(self) -> dict:
+    async def tare_flow(self) -> dict[str, str | float]:
         """Creates a no-flow reference point.
 
         Should only be used when no flow and at operation pressure.
@@ -243,7 +245,7 @@ class Device(ABC):
             **Untested.**
 
         Returns:
-            dict: Dataframe with zero flow.
+            dict[str, str | float]: Dataframe with zero flow.
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -254,7 +256,7 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def tare_gauge_P(self) -> dict:
+    async def tare_gauge_P(self) -> dict[str, str | float]:
         """Tares the gauge pressure of the device or differential pressure reference point.
 
         Should only be used when no flow and open to atmosphere.
@@ -263,7 +265,7 @@ class Device(ABC):
             **Untested.**
 
         Returns:
-            dict: Dataframe with zero guage pressure.
+            dict[str, str | float]: Dataframe with zero guage pressure.
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -274,7 +276,9 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def auto_tare(self, enable: bool = "", delay: float = "") -> dict:
+    async def auto_tare(
+        self, enable: bool = "", delay: float = ""
+    ) -> dict[str, str | float]:
         """Gets/Sets if the controller auto tares.
 
         Note:
@@ -285,7 +289,7 @@ class Device(ABC):
             delay (float): Amount of time in seconds waited until tare begins 0.1 to 25.5
 
         Returns:
-            dict: If tare is active or not and delay length in seconds
+            dict[str, str | float]: If tare is active or not and delay length in seconds
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -300,7 +304,7 @@ class Device(ABC):
         ret[2] = float(ret[2])
         return dict(zip(LABELS, ret))
 
-    async def configure_data_frame(self, format: int = "") -> dict:
+    async def configure_data_frame(self, format: int = "") -> dict[str, str | float]:
         """Sets data frame's format.
 
         Args:
@@ -311,7 +315,7 @@ class Device(ABC):
                 - 2 for signed setpoint and totalizer, number digits based on resolution
 
         Returns:
-            dict: Data Frame in new format
+            dict[str, str | float]: Data Frame in new format
         """
         if self._vers and self._vers < 6.00:
             print("Error: Version earlier than 6v00")
@@ -331,7 +335,7 @@ class Device(ABC):
         group: bool = "",
         unit: str = "",
         override: bool = "",
-    ) -> dict:
+    ) -> dict[str, str]:
         """Gets/Sets units for desired statistics.
 
         Note:
@@ -347,7 +351,7 @@ class Device(ABC):
                 - 1 for applying the new units to all statistics in the group.
 
         Returns:
-            dict: Responds with unit
+            dict[str, str]: Responds with unit
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -365,17 +369,17 @@ class Device(ABC):
 
     async def flow_press_avg(
         self,
-        stat_val: str = "",
-        avg_time: int = "",
-    ) -> dict:
+        stat_val: str,
+        avg_time: int,
+    ) -> dict[str, str | float]:
         """Gets/Set the length of time a statistic is averaged over.
 
         Args:
-            stat_val (str): Desired statistic to get avgerage/set time
+            stat_val (str): Desired statistic to get average/set time
             avg_time (int): Time in milliseconds over which averages taken. Ranges from 0 to 9999. If 0, the deivce updates every millisecond.
 
         Returns:
-            dict: Responds value of queried average and avg time const
+            dict[str, str | float]: Responds value of queried average and avg time const
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -390,7 +394,9 @@ class Device(ABC):
         ret[1] = int(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def full_scale_val(self, stat_val: str = "", unit: str = "") -> dict:
+    async def full_scale_val(
+        self, stat_val: str = "", unit: str = ""
+    ) -> dict[str, str | float]:
         """Gets measurement range of given statistic.
 
         Args:
@@ -398,7 +404,7 @@ class Device(ABC):
             unit (str): Units of range. Defaults if left blank.
 
         Returns:
-            dict: Responds max value of statistic and units
+            dict[str, str | float]: Responds max value of statistic and units
         """
         if self._vers and self._vers < 6.00:
             print("Error: Version earlier than 6v00")
@@ -411,14 +417,14 @@ class Device(ABC):
         ret[1] = float(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def power_up_tare(self, enable: bool = "") -> dict:
+    async def power_up_tare(self, enable: bool = "") -> dict[str, str]:
         """Gets/Sets if device tares on power-up.
 
         Args:
             enable (bool): If Enabled, 0.25 second after sensors stable. Close loop delay, valves stay closed
 
         Returns:
-            dict: If tare is enabled
+            dict[str, str]: If tare is enabled
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -446,7 +452,7 @@ class Device(ABC):
 
     async def stp_press(
         self, stp: str = "S", unit: str = "", press: float = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Gets/Sets standard or normal pressure reference point.
 
         To get Normal pressure reference point, set stp to N.
@@ -457,7 +463,7 @@ class Device(ABC):
             press (float): Numeric value of new desired pressure reference point
 
         Returns:
-            dict: Current pressure reference point and units
+            dict[str, str | float]: Current pressure reference point and units
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -474,7 +480,9 @@ class Device(ABC):
         ret[1] = float(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def stp_temp(self, stp: str = "S", unit: str = "", temp: float = "") -> dict:
+    async def stp_temp(
+        self, stp: str = "S", unit: str = "", temp: float = ""
+    ) -> dict[str, str | float]:
         """Gets/Sets standard or normal temperature reference point.
 
         To get Normal temperature reference point, set stp to N.
@@ -485,7 +493,7 @@ class Device(ABC):
             temp (float): Numeric value of new desired temperature reference point
 
         Returns:
-            dict: Current temperature reference point and units
+            dict[str, str | float]: Current temperature reference point and units
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -502,7 +510,7 @@ class Device(ABC):
         ret[1] = float(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def zero_band(self, zb: float = "") -> dict:
+    async def zero_band(self, zb: float = "") -> dict[str, str | float]:
         """Gets/Sets the zero band of the device.
 
         Args:
@@ -512,7 +520,7 @@ class Device(ABC):
                 - 0 to disable
 
         Returns:
-            dict: Returns current zero band as percent of full scale
+            dict[str, str | float]: Returns current zero band as percent of full scale
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -528,7 +536,7 @@ class Device(ABC):
 
     async def analog_out_source(
         self, primary: str = "0", val: str = "", unit: str = ""
-    ) -> dict:
+    ) -> dict[str, str]:
         """Gets/Sets the source of the analog output.
 
         Args:
@@ -540,7 +548,7 @@ class Device(ABC):
             unit (str): Desired unit. Optional
 
         Returns:
-            dict: Statistic and units
+            dict[str, str]: Statistic and units
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -570,7 +578,7 @@ class Device(ABC):
                     break
         return dict(zip(LABELS, ret))
 
-    async def baud(self, new_baud: int = "") -> dict:
+    async def baud(self, new_baud: int = "") -> dict[str, str | float]:
         """Gets/Sets the baud rate of the device.
 
         Note:
@@ -584,7 +592,7 @@ class Device(ABC):
                 After baud is changed, communication MUST be re-established.
 
         Returns:
-            dict: Baud rate, either current or new
+            dict[str, str | float]: Baud rate, either current or new
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -598,7 +606,7 @@ class Device(ABC):
         ret[1] = int(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def blink(self, dur: int = "") -> dict:
+    async def blink(self, dur: int = "") -> dict[str, str]:
         """Blinks the device. Gets the blinking state.
 
         Args:
@@ -607,7 +615,7 @@ class Device(ABC):
             - -1 to flash indefinitely.
 
         Returns:
-            dict: If the display is currently blinking
+            dict[str, str]: If the display is currently blinking
         """
         if self._vers and self._vers < 8.28:
             print("Error: Version earlier than 8v28")
@@ -632,11 +640,11 @@ class Device(ABC):
         self._id = new_id
         return
 
-    async def firmware_version(self) -> dict:
+    async def firmware_version(self) -> dict[str, str]:
         """Gets the firmware version of the device.
 
         Returns:
-            dict: Current firmware vesion and its date of creation
+            dict[str, str]: Current firmware vesion and its date of creation
         """
         LABELS = ["Unit ID", "Vers", "Creation Date"]
         ret = await self._device._write_readline(f"{self._id}VE")
@@ -645,11 +653,11 @@ class Device(ABC):
         self._vers = float(ret[1][:-4].replace(".", "").replace("v", "."))
         return dict(zip(LABELS, ret))
 
-    async def lock_display(self) -> dict:
+    async def lock_display(self) -> dict[str, str | float]:
         """Disables buttons on front of the device.
 
         Returns:
-            dict: Data frame with lock status enabled
+            dict[str, str | float]: Data frame with lock status enabled
         """
         if self._df_format is None:
             await self.get_df_format()
@@ -659,16 +667,16 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def manufacturing_info(self) -> list:
+    async def manufacturing_info(self) -> list[str]:
         """Gets info about device.
 
         Returns:
-            dict: Info on device, model, serial number, manufacturing, calibration, software
+            list[str]: Info on device, model, serial number, manufacturing, calibration, software
         """
         ret = await self._device._write_readall(f"{self._id}??M*")
         return ret
 
-    async def remote_tare(self, actions: list = []) -> dict:
+    async def remote_tare(self, actions: list[str] = []) -> dict[str, str | float]:
         """Gets/Sets the remote tare value.
 
         Note:
@@ -678,10 +686,10 @@ class Device(ABC):
             **Untested: Sets the remote tare effect.**
 
         Args:
-            actions (list): Actions to perform
+            actions (list[str]): Actions to perform
 
         Returns:
-            dict: Total value of active actions
+            dict[str, str | float]: Total value of active actions
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -719,7 +727,7 @@ class Device(ABC):
         ret = await self._device._write_readline(f"{self._id}FACTORY RESTORE ALL")
         return ret
 
-    async def user_data(self, slot: int = "", val: str = "") -> dict:
+    async def user_data(self, slot: int = "", val: str = "") -> dict[str, str]:
         """Gets/Sets user data in slot.
 
         Gets the user data from the string is slot.
@@ -730,7 +738,7 @@ class Device(ABC):
             val (str): 32-char ASCII string. Must be encoded.
 
         Returns:
-            dict: Value in called slot (either new or read)
+            dict[str, str]: Value in called slot (either new or read)
         """
         if self._vers and self._vers < 8.24:
             print("Error: Version earlier than 8v24")
@@ -743,14 +751,14 @@ class Device(ABC):
         ret = ret.split()
         return dict(zip(LABELS, ret))
 
-    async def streaming_rate(self, interval: int = "") -> dict:
+    async def streaming_rate(self, interval: int = "") -> dict[str, str | float]:
         """Gets/Sets the streaming rate of the device.
 
         Args:
             interval (int): Streaming rate in milliseconds between data frames
 
         Returns:
-            dict: Interval of streaming rate
+            dict[str, str | float]: Interval of streaming rate
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -761,11 +769,11 @@ class Device(ABC):
         ret[1] = int(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def unlock_display(self) -> dict:
+    async def unlock_display(self) -> dict[str, str | float]:
         """Enables buttons on front of the device.
 
         Returns:
-            dict: Data frame with LCK disabled
+            dict[str, str | float]: Data frame with LCK disabled
         """
         # Gets the format of the dataframe if it is not already known
         if self._df_format is None:
@@ -778,7 +786,7 @@ class Device(ABC):
 
     async def create_gas_mix(
         self, name: str = "", number: int = "", gas_dict: dict[str, float] = {}
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Sets custom gas mixture.
 
         This only works with specific gas codes so far
@@ -832,7 +840,7 @@ class Device(ABC):
         ret = ret.split()
         return dict(zip(LABELS, ret))
 
-    async def delete_gas_mix(self, gasN: str = "") -> dict:
+    async def delete_gas_mix(self, gasN: str = "") -> dict[str, float]:
         """Deletes custom gas mixture.
 
         Note:
@@ -842,7 +850,7 @@ class Device(ABC):
             gasN (str): Number of gas to delete
 
         Returns:
-            dict: Deleted gas' number
+            dict[str, float]: Deleted gas' number
         """
         if self._vers and self._vers < 5.00:
             print("Error: Version earlier than 5v00")
@@ -852,14 +860,14 @@ class Device(ABC):
         ret = ret.split()
         return dict(zip(LABELS, ret))
 
-    async def query_gas_mix(self, gasN: int = "") -> dict:
+    async def query_gas_mix(self, gasN: int = "") -> dict[str, str]:
         """Gets percentages of gases in mixture.
 
         Args:
            gasN (int): Number of the custom gas to analyze
 
         Returns:
-            dict: Gas numbers and their percentages in mixture
+            dict[str, str]: Gas numbers and their percentages in mixture
         """
         if self._vers and self._vers < 9.00:
             print("Error: Version earlier than 9v00")
@@ -896,7 +904,7 @@ class Device(ABC):
         limit_mode: int = "",
         num: int = "",
         dec: int = "",
-    ) -> dict:
+    ) -> dict[str, str]:
         """Enables/Disables and Configures totalizer.
 
         Args:
@@ -920,7 +928,7 @@ class Device(ABC):
             dec (int): 0 to 9. How many digits after decimal.
 
         Returns:
-            dict: Configuration of totalizer
+            dict[str, str]: Configuration of totalizer
         """
         if self._vers and self._vers < 10.00:
             print("Error: Version earlier than 10v00")
@@ -942,7 +950,7 @@ class Device(ABC):
         ret = ret.split()
         return dict(zip(LABELS, ret))  # Need to convert codes to text
 
-    async def reset_totalizer(self, totalizer: int = 1) -> dict:
+    async def reset_totalizer(self, totalizer: int = 1) -> dict[str, str | float]:
         """Returns totalizer count to zero and restarts timer.
 
         Note:
@@ -952,7 +960,7 @@ class Device(ABC):
             totalizer (int): Which totalizer to reset: 1 or 2
 
         Returns:
-            dict: Dataframe with totalizer set to zero.
+            dict[str, str | float]: Dataframe with totalizer set to zero.
         """
         if self._vers and self._vers < 8.00:
             print("Error: Version earlier than 8v00")
@@ -966,7 +974,7 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def reset_totalizer_peak(self, totalizer: int = 1) -> dict:
+    async def reset_totalizer_peak(self, totalizer: int = 1) -> dict[str, str | float]:
         """Resets peak flow rate that has been measured since last reset.
 
         Note:
@@ -976,7 +984,7 @@ class Device(ABC):
             totalizer (int): Which totalizer to reset: 1 or 2
 
         Returns:
-            dict: Data frame
+            dict[str, str | float]: Data frame
         """
         if self._vers and self._vers < 8.00:
             print("Error: Version earlier than 8v00")
@@ -990,7 +998,7 @@ class Device(ABC):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def save_totalizer(self, enable: bool = "") -> dict:
+    async def save_totalizer(self, enable: bool = "") -> dict[str, str]:
         """Enables/disables saving totalizer values.
 
         If enabled, restore last saved totalizer on power-up.
@@ -999,7 +1007,7 @@ class Device(ABC):
            enable (bool): Whether to enable or disable saving totalizer values on startup
 
         Returns:
-            dict: Says if totalizer is enabled or disabled
+            dict[str, str]: Says if totalizer is enabled or disabled
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1013,11 +1021,11 @@ class Device(ABC):
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(LABELS, ret))  # Need to convert codes to text
 
-    async def get_df_format(self) -> list:
+    async def get_df_format(self) -> list[list[str]]:
         """Gets the format of the current dataframe format of the device.
 
         Returns:
-            list: Dataframe format
+            list[list[str]]: Dataframe format
         """
         resp = await self._device._write_readall(f"{self._id}??D*")
         splits = []
@@ -1058,14 +1066,14 @@ class Device(ABC):
         self._df_units = units
         return units
 
-    async def get(self, measurements: list = ["@"]) -> dict:
+    async def get(self, measurements: list[str] = ["@"]) -> dict[str, str | float]:
         """Gets the value of a measurement from the device.
 
         Args:
-            measurements (list): List of measurements to get
+            measurements (list[str]): List of measurements to get
 
         Returns:
-            dict: Dictionary of measurements and their values
+            dict[str, str | float]: Dictionary of measurements and their values
         """
         resp = {}
         flag = 0
@@ -1087,14 +1095,14 @@ class Device(ABC):
             i += 1
         return resp
 
-    async def set(self, comm: dict) -> dict:
+    async def set(self, comm: dict[str, str | float]) -> dict[str, str | float]:
         """Sets the values of measurements for the device.
 
         Args:
-            comm (dict): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
+            comm (dict[str, str | float]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
 
         Returns:
-            dict: response of setting function
+            dict[str, str | float]: response of setting function
         """
         resp = {}
         for meas in list(comm.keys()):
@@ -1164,7 +1172,9 @@ class FlowController(FlowMeter):
         """
         super().__init__(device, dev_info, id, **kwargs)
 
-    async def setpoint(self, value: float = "", unit: str = "") -> dict:
+    async def setpoint(
+        self, value: float = "", unit: str = ""
+    ) -> dict[str, str | float]:
         """Gets/Sets the setpoint of the device.
 
         Note:
@@ -1175,7 +1185,7 @@ class FlowController(FlowMeter):
             unit (str): Set setpoint units.
 
         Returns:
-            dict: Reports setpoint with units
+            dict[str, str | float]: Reports setpoint with units
         """
         if self._vers and self._vers < 9.00:
             print("Error: Version later than 9v00, running Change Setpoint")
@@ -1192,7 +1202,7 @@ class FlowController(FlowMeter):
         ret[1], ret[2] = float(ret[1]), float(ret[2])
         return dict(zip(LABELS, ret))
 
-    async def _change_setpoint(self, value: float = "") -> dict:
+    async def _change_setpoint(self, value: float = "") -> dict[str, str | float]:
         """Changes the setpoint of the device.
 
         Note:
@@ -1202,7 +1212,7 @@ class FlowController(FlowMeter):
             value (float): Desired setpoint value for the controller. Set to 0 to close valve.
 
         Returns:
-            dict: Dataframe with new setpoint
+            dict[str, str | float]: Dataframe with new setpoint
         """
         if self._vers and self._vers < 4.33:
             print("Error: Version earlier than 4v33")
@@ -1220,7 +1230,7 @@ class FlowController(FlowMeter):
 
     async def batch(
         self, totalizer: int = 1, batch_vol: int = "", unit: str = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Directs controller to flow a set amount then close the valve.
 
         Note:
@@ -1232,7 +1242,7 @@ class FlowController(FlowMeter):
             unit (str): Volume units for flow.
 
         Returns:
-            dict: Reports totalizer, batch size, units.
+            dict[str, str | float]: Reports totalizer, batch size, units.
         """
         if self._vers and self._vers < 10.00:
             print("Error: Version earlier than 10v00")
@@ -1243,7 +1253,9 @@ class FlowController(FlowMeter):
         )
         return dict(zip(LABELS, ret.split()))
 
-    async def deadband_limit(self, save: bool = "", limit: float = "") -> dict:
+    async def deadband_limit(
+        self, save: bool = "", limit: float = ""
+    ) -> dict[str, str | float]:
         """Gets/Sets the range the controller allows for drift around setpoint.
 
         Args:
@@ -1251,7 +1263,7 @@ class FlowController(FlowMeter):
             limit (float): Value of deadband limit
 
         Returns:
-            dict: Reports deadband with units
+            dict[str, str | float]: Reports deadband with units
         """
         LABELS = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
         if isinstance(save, bool):
@@ -1261,14 +1273,14 @@ class FlowController(FlowMeter):
         ret[1] = float(ret[1])
         return dict(zip(LABELS, ret))
 
-    async def deadband_mode(self, mode: str = "") -> dict:
+    async def deadband_mode(self, mode: str = "") -> dict[str, str]:
         """Gets/Sets the reaction the controller has for values around setpoint.
 
         Args:
             mode (str): "Hold" or "Current" holds valve and current positions until outside the limits. "Close" closes valve until outside the limits.
 
         Returns:
-            dict: Reports mode
+            dict[str, str]: Reports mode
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1287,7 +1299,7 @@ class FlowController(FlowMeter):
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(LABELS, ret))
 
-    async def loop_control_alg(self, algo: str = "") -> dict:
+    async def loop_control_alg(self, algo: str = "") -> dict[str, str]:
         """Gets/Sets the control algorithm the controller uses.
 
         - algorithm 1 = PD/PDF
@@ -1297,7 +1309,7 @@ class FlowController(FlowMeter):
             algo (str): Algorithm used for loop control. "PD", "PDF", "PD/PDF", "PD2I"
 
         Returns:
-            dict: Reports algorithm
+            dict[str, str]: Reports algorithm
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1316,14 +1328,14 @@ class FlowController(FlowMeter):
         ret[1] = algorithm_mapping.get(str(ret[1]), ret[1])
         return dict(zip(LABELS, ret))
 
-    async def loop_control_var(self, var: str = "") -> dict:
+    async def loop_control_var(self, var: str = "") -> dict[str, str]:
         """Sets the statistic the setpoint controls.
 
         Args:
             var (str): Desired statistic
 
         Returns:
-            dict: Reports new loop variable
+            dict[str, str]: Reports new loop variable
         """
         if self._vers and self._vers < 9.00:
             print("Error: Version earlier than 9v00")
@@ -1341,7 +1353,7 @@ class FlowController(FlowMeter):
 
     async def loop_control_range(
         self, var: str = "", unit: str = "", min: float = "", max: float = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Gets/Sets the control range of the statistic the setpoint controls.
 
         Args:
@@ -1351,7 +1363,7 @@ class FlowController(FlowMeter):
             max (float): Max allowable setpoint
 
         Returns:
-            dict: Reports loop variable, units, min, and max
+            dict[str, str | float]: Reports loop variable, units, min, and max
         """
         if self._vers and self._vers < 9.00:
             print("Error: Version earlier than 9v00")
@@ -1372,7 +1384,9 @@ class FlowController(FlowMeter):
         ret[2], ret[3] = float(ret[2]), float(ret[3])
         return dict(zip(LABELS, ret))
 
-    async def max_ramp_rate(self, max: float = "", unit: str = "") -> dict:
+    async def max_ramp_rate(
+        self, max: float = "", unit: str = ""
+    ) -> dict[str, str | float]:
         """Gets/Sets how fast controller moves to new setpoint.
 
         Args:
@@ -1380,7 +1394,7 @@ class FlowController(FlowMeter):
             unit (str): unit for rate
 
         Returns:
-            dict: Reports max ramp rate with unit
+            dict[str, str | float]: Reports max ramp rate with unit
         """
         if self._vers and self._vers < 7.11:
             print("Error: Version earlier than 7v11")
@@ -1393,7 +1407,7 @@ class FlowController(FlowMeter):
 
     async def pdf_gains(
         self, save: bool = "", p_gain: int = "", d_gain: int = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Gets/Sets the proportional and intregral gains of the PD/PDF controller.
 
         Manual is incorrect, this does not have an insignifcant 0 in the command
@@ -1404,7 +1418,7 @@ class FlowController(FlowMeter):
             d_gain (int): Proportional gain. Range is 0 to 65535
 
         Returns:
-            dict: Reports P and D gains
+            dict[str, str | float]: Reports P and D gains
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1421,7 +1435,7 @@ class FlowController(FlowMeter):
 
     async def pd2i_gains(
         self, save: bool = "", p_gain: int = "", i_gain: int = "", d_gain: int = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Gets/Sets the proportional, intregral, and derivative gains of the PD2I controller.
 
         Note:
@@ -1434,7 +1448,7 @@ class FlowController(FlowMeter):
             d_gain (int): Derivative gain. Range is 0 to 65535. Optional.
 
         Returns:
-            dict: Reports P, I, and D gains
+            dict[str, str | float]: Reports P, I, and D gains
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1449,7 +1463,7 @@ class FlowController(FlowMeter):
         ret[1], ret[2], ret[3] = int(ret[1]), int(ret[2]), int(ret[3])
         return dict(zip(LABELS, ret))
 
-    async def power_up_setpoint(self, val: float = "") -> dict:
+    async def power_up_setpoint(self, val: float = "") -> dict[str, str | float]:
         """Enables immediate setpoint on power-up.
 
         Note:
@@ -1459,7 +1473,7 @@ class FlowController(FlowMeter):
             val (float): Setpoint on power-up. 0 to disable start-up setpoint
 
         Returns:
-            dict: Dataframe with current (not power-up) setpoint
+            dict[str, str | float]: Dataframe with current (not power-up) setpoint
         """
         if self._vers and self._vers < 8.04:
             print("Error: Version earlier than 8v04")
@@ -1473,7 +1487,7 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def overpressure(self, limit: float = "") -> dict:
+    async def overpressure(self, limit: float = "") -> dict[str, str | float]:
         """Sets the overpressure limit of the device. Flow is stopped if pressure exceeds.
 
         Note:
@@ -1483,7 +1497,7 @@ class FlowController(FlowMeter):
             limit (float): Upper limit of pressure. Disabled if above pressure full scale or <= 0
 
         Returns:
-            dict: Dataframe
+            dict[str, str | float]: Dataframe
         """
         if self._vers and self._vers < 5.09:
             print("Error: Version earlier than 5v09")
@@ -1499,7 +1513,7 @@ class FlowController(FlowMeter):
 
     async def ramp(
         self, up: bool = "", down: bool = "", zero: bool = "", power_up: bool = ""
-    ) -> dict:
+    ) -> dict[str, str]:
         """Gets/Sets the ramp settings of the device.
 
         Args:
@@ -1509,7 +1523,7 @@ class FlowController(FlowMeter):
             power_up (bool): To setpoint on power-up. Disabled = immediate move. Enabled = Follow ramp rate
 
         Returns:
-            dict: Dataframe
+            dict[str, str]: Dataframe
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1531,7 +1545,7 @@ class FlowController(FlowMeter):
         ret = [output_mapping.get(str(val), val) for val in ret]
         return dict(zip(LABELS, ret))
 
-    async def setpoint_source(self, mode: str = "") -> dict:
+    async def setpoint_source(self, mode: str = "") -> dict[str, str]:
         """Gets/Sets how the setpoint is given to the controller.
 
         Note:
@@ -1545,7 +1559,7 @@ class FlowController(FlowMeter):
                 - U for Display or Serial Communications. Does not save.
 
         Returns:
-            dict: Setpoint source mode
+            dict[str, str]: Setpoint source mode
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1563,7 +1577,7 @@ class FlowController(FlowMeter):
 
     async def valve_offset(
         self, save: bool = "", initial_offset: float = "", closed_offset: float = ""
-    ) -> dict:
+    ) -> dict[str, str | float]:
         """Gets/Sets how much power driven to valve when first opened or considered closed.
 
         Args:
@@ -1572,7 +1586,7 @@ class FlowController(FlowMeter):
             closed_offset (float): 0-100% of total electrcity for device to consider valve closed
 
         Returns:
-            dict: Offset values
+            dict[str, str | float]: Offset values
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1587,14 +1601,14 @@ class FlowController(FlowMeter):
         ret[1], ret[2] = float(ret[1]), float(ret[2])
         return dict(zip(LABELS, ret))
 
-    async def zero_pressure_control(self, enable: bool = "") -> dict:
+    async def zero_pressure_control(self, enable: bool = "") -> dict[str, str]:
         """Gets/Sets how controller reacts to 0 Pressure setpoint.
 
         Args:
             enable (bool): If disabled, valve opens/closes completely. If enabled, uses close-loop
 
         Returns:
-            dict: If active control is active or not
+            dict[str, str]: If active control is active or not
         """
         if self._vers and self._vers < 10.05:
             print("Error: Version earlier than 10v05")
@@ -1608,14 +1622,14 @@ class FlowController(FlowMeter):
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
         return dict(zip(LABELS, ret))
 
-    async def cancel_valve_hold(self) -> dict:
+    async def cancel_valve_hold(self) -> dict[str, str | float]:
         """Removes valve holds on the device.
 
         Note:
              **Untested.**
 
         Returns:
-             dict: Returns data frame without 'hold' status
+             dict[str, str | float]: Returns data frame without 'hold' status
         """
         if self._df_format is None:
             await self.get_df_format()
@@ -1626,14 +1640,14 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def exhaust(self) -> dict:
+    async def exhaust(self) -> dict[str, str | float]:
         """Closes upstream valve and opens downstream 100%.
 
         Note:
-             **Untested.**
+            **Untested.**
 
         Returns:
-             dict: Returns data frame with 'hold' status
+            dict[str, str | float]: Returns data frame with 'hold' status
         """
         if self._vers and self._vers < 4.37:
             print("Error: Version earlier than 4v37")
@@ -1647,14 +1661,14 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def hold_valves(self) -> dict:
+    async def hold_valves(self) -> dict[str, str | float]:
         """Maintains valve position.
 
         Note:
              **Untested.**
 
         Returns:
-             dict: Returns data frame with 'hold' status
+             dict[str, str | float]: Returns data frame with 'hold' status
         """
         if self._vers and self._vers < 5.07:
             print("Error: Version earlier than 5v07")
@@ -1668,14 +1682,14 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def hold_valves_closed(self) -> dict:
+    async def hold_valves_closed(self) -> dict[str, str | float]:
         """Maintains closed valve position.
 
         Note:
             **Untested.**
 
         Returns:
-            dict: Returns data frame with 'hold' status
+            dict[str, str | float]: Returns data frame with 'hold' status
         """
         if self._vers and self._vers < 5.07:
             print("Error: Version earlier than 5v07")
@@ -1689,14 +1703,14 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def query_valve(self) -> dict:
+    async def query_valve(self) -> dict[str, str | float]:
         """Gives the percent of total electrciity sent to valve(s).
 
         Note:
             **Untested.**
 
         Returns:
-            dict: Valve drive percentages
+            dict[str, str | float]: Valve drive percentages
         """
         if self._vers and self._vers < 8.18:
             print("Error: Version earlier than 8v18")
@@ -1738,14 +1752,14 @@ I'm going to double check the new set does exactly what we want before I delete 
         return resp
     '''
 
-    async def set(self, comm: dict) -> dict:
+    async def set(self, comm: dict[str, str | float]) -> dict[str, str | float]:
         """Sets the values of measurements for the device.
 
         Args:
-            comm (dict): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
+            comm (dict[str, str | float]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
 
         Returns:
-            dict: Response of setting function
+            dict[str, str | float]: Response of setting function
         """
         resp = {}
         for meas in list(comm.keys()):
@@ -1765,14 +1779,14 @@ I'm going to double check the new set does exactly what we want before I delete 
                 resp.update(await self.loop_control_var(str(comm[meas][0])))
         return resp
 
-    async def get(self, measurements: list = ["@"]) -> dict:
+    async def get(self, measurements: list[str] = ["@"]) -> dict[str, str | float]:
         """Gets the value of a measurement from the device.
 
         Args:
-            measurements (list): List of measurements to get
+            measurements (list[str]): List of measurements to get
 
         Returns:
-            dict: Dictionary of measurements
+            dict[str, str | float]: Dictionary of measurements
         """
         resp = {}
         flag = 0

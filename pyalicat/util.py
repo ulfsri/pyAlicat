@@ -11,20 +11,19 @@ from trio import run
 import trio
 import re
 from typing import Any
+import daq
 
 
 def gas_correction():
     """Calculates the gas correction factor for the Alicat device.
 
     Returns:
-    -------
-    float
-        The gas correction factor.
+        float: The gas correction factor.
     """
     pass
 
 
-async def find_devices():
+async def find_devices() -> list[str]:
     """Finds all connected Alicat devices.
 
     Find all available serial ports using the `ls` command
@@ -37,9 +36,7 @@ async def find_devices():
 
 
     Returns:
-    -------
-    list
-        A list of all connected Alicat devices.
+        list[str]: A list of all connected Alicat devices.
     """
     # Get the list of available serial ports
     result = glob.glob("/dev/ttyUSB*")
@@ -54,18 +51,15 @@ async def find_devices():
     return devices
 
 
-async def is_alicat_device(port, id: str = "A", **kwargs: Any):
+async def is_alicat_device(port: str, id: str = "A", **kwargs: Any) -> bool:
     """Check if the given port is an Alicat device.
 
     Parameters:
-    ----------
-    port : str
-        The name of the serial port.
+        port (str): The name of the serial port.
+        id (str): The device ID. Default is "A".
 
     Returns:
-    -------
-    bool
-        True if the port is an Alicat device, False otherwise.
+        bool: True if the port is an Alicat device, False otherwise.
     """
     if port.startswith("/dev/"):
         device = SerialDevice(port, **kwargs)
@@ -98,15 +92,37 @@ def get_device_type(port):
     """Get the device type for the given port.
 
     Parameters:
-    ----------
-    port : str
-        The name of the serial port.
+        port (str): The name of the serial port.
 
     Returns:
-    -------
-    dict
-        A dictionary containing the port name and the type of device on the port.
+        dict[str, str]: A dictionary containing the port name and the type of device on the port.
     """
     # Implement the logic to get the device information
     # You can use any method that suits your needs
     pass
+
+
+async def diagnose():
+    """Run various functions to ensure the device is functioning properly."""
+    get_code1 = "Mass_Flow"
+    get_code2 = "Abs_Press"
+    set_code = "Setpt"
+    devs = await find_devices()
+    print(f"Devices: {devs}")
+    Daq = await daq.DAQ.init({"A": list(devs.keys())[0]})
+    print(f"Initiate DAQ with A: {await Daq.dev_list()}")
+    await Daq.add_device({"B": list(devs.keys())[1]})
+    print(f"Add device B: {await Daq.dev_list()}")
+    print(f"Get data (list): {await Daq.get([get_code1, get_code2])}")
+    temp = await Daq.get(set_code, "B")
+    print(f"Get Data (id, no list): Temp = {temp}")
+    await Daq.remove_device(["A"])
+    print(f"Remove device A: {await Daq.dev_list()}")
+    print(f"Set data (with id).")
+    await Daq.set({set_code: (temp["B"][set_code] + 1)}, "B")
+    print(f"Get data: {await Daq.get([set_code])}")
+    print(f"Set data (without id).")
+    await Daq.set({set_code: temp["B"][set_code]})
+    print(f"Get data: {await Daq.get([set_code])}")
+    await Daq.add_device({"C": list(devs.keys())[0]})
+    print(f"Add device C: {await Daq.dev_list()}")

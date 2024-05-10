@@ -171,7 +171,7 @@ class SerialDevice(CommDevice):
         self.isOpen = False
         return line.decode("ascii")
 
-    async def _write_readall(self, command: str, timeout: int = None) -> list:
+    async def _write_readall(self, command: str, timeout: int = None) -> list[str]:
         """Write command and read until timeout reached.
 
         Args:
@@ -179,7 +179,7 @@ class SerialDevice(CommDevice):
             timeout (int): The timeout of the Alicat device in ms.
 
         Returns:
-            list: List of lines read from the device.
+            list[str]: List of lines read from the device.
         """
         timeout = self.timeout if timeout is None else timeout
         async with self.ser_devc:

@@ -1,9 +1,9 @@
 {
     "statistics" : [
     {
-        "Batch_mass_remain.": 12,
-        "Batch_vol_remain.": 11,
-        "Batch_vol_ext_remain.": 19,
+        "Batch_mass_remain": 12,
+        "Batch_vol_remain": 11,
+        "Batch_vol_ext_remain": 19,
         "Mass_Flow": 5,
         "Mass_Flow_avg": 69,
         "Mass_Flow_max": 175,

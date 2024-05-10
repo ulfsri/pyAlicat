@@ -28,11 +28,11 @@ class DAQ:
         return
 
     @classmethod
-    async def init(cls, devs: dict) -> "DAQ":
+    async def init(cls, devs: dict[str, str]) -> "DAQ":
         """Initializes the DAQ.
 
         Args:
-            devs (dict): The dictionary of devices to add. Name:Port
+            devs (dict[str, str]): The dictionary of devices to add. Name:Port
 
         Returns:
             DAQ: The DAQ object.
@@ -41,11 +41,11 @@ class DAQ:
         await daq.add_device(devs)
         return daq
 
-    async def add_device(self, devs: dict) -> None:
+    async def add_device(self, devs: dict[str, str]) -> None:
         """Creates and initializes the devices.
 
         Args:
-            devs (dict): The dictionary of devices to add. Name:Port
+            devs (dict[str, str]): The dictionary of devices to add. Name:Port
         """
         if isinstance(devs, str):
             devs = devs.split()
@@ -56,26 +56,28 @@ class DAQ:
             dev_list.update({name: dev})
         return
 
-    async def remove_device(self, name: list) -> None:
+    async def remove_device(self, name: list[str]) -> None:
         """Creates and initializes the devices.
 
         Args:
-            name (list): The list of devices to remove.
+            name (list[str]): The list of devices to remove.
         """
         for n in name:
             await dev_list[n]._device.close()
             del dev_list[n]
         return
 
-    async def dev_list(self) -> dict:
+    async def dev_list(self) -> dict[str, device.Device]:
         """Displays the list of devices.
 
         Returns:
-            dict: The list of devices and their objects.
+            dict[str, device.Device]: The list of devices and their objects.
         """
         return dev_list
 
-    async def get(self, val: list = "", id: list = "") -> dict:
+    async def get(
+        self, val: list[str] = "", id: list[str] = ""
+    ) -> dict[str, dict[str | float]]:
         """Gets the data from the device.
 
         If id not specified, returns data from all devices.
@@ -99,7 +101,7 @@ class DAQ:
             ret_dict.update({i: await dev_list[i].get(val)})
         return ret_dict
 
-    async def set(self, command: dict, id: str = "") -> None:
+    async def set(self, command: dict[str, str | float], id: str = "") -> None:
         """Sets the data of the device.
 
         Args:
