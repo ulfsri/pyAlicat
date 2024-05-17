@@ -368,17 +368,14 @@ class Device(ABC):
     async def engineering_units(
         self,
         statistic_value: str = "",
-        group: bool = "",
         unit: str = "",
+        group: bool = "",
         override: bool = "",
     ) -> dict[str, str]:
         """Gets/Sets units for desired statistics.
 
         Example:
             df = run(dev.engineering_units, "Mass_Flow", False, "SCCM", False)
-
-        Note:
-            **Setting is Nonfunctional**
 
         Args:
             statistic_value (str): Desired statistic to get/set unit for
@@ -401,7 +398,7 @@ class Device(ABC):
         if isinstance(override, bool):
             override = "1" if override else ""
         ret = await self._device._write_readline(
-            f"{self._id}DCU {statistics[statistic_value]} {group} {units[unit]} {override}"
+            f"{self._id}DCU {statistics[statistic_value]} {units[unit]} {group} {override}"
         )
         ret = ret.split()
         return dict(zip(LABELS, ret))
@@ -1183,6 +1180,21 @@ class Device(ABC):
         self._df_units = units
         return units
 
+    async def set_units(self, stats: dict[str, str]) -> dict[str, str]:
+        """Sets the units of the current dataframe format of the device.
+
+        Args:
+            stats (dict[str, str]): Dictionary of statistics and their units
+
+        Returns:
+            dict[str, str]: Units of statistics in measurement
+        """
+        for stat in stats:
+            await self._device._write_readline(
+                f"{self._id}DCU {statistics[stat]} {units[stats[stat]]}"
+            )
+        return stats
+
     async def get(self, measurements: list[str] = ["@"]) -> dict[str, str | float]:
         """Gets the value of a measurement from the device.
 
@@ -1308,7 +1320,7 @@ class FlowController(FlowMeter):
             dict[str, str | float]: Reports setpoint with units
         """
         if self._vers and self._vers < 9.00:
-            print("Error: Version later than 9v00, running Change Setpoint")
+            print("Error: Version earlier than 9v00, running Change Setpoint")
             return await self.change_setpoint(value)
         LABELS = [
             "Unit ID",
@@ -1908,41 +1920,15 @@ class FlowController(FlowMeter):
                 ret[i] = float(ret[i])
         return dict(zip(LABELS, ret))
 
-    '''
-I'm going to double check the new set does exactly what we want before I delete this
-    async def set(self, meas: str, param1: str, param2: str) -> dict:
-        """Gets the value of a measurement from the device.
-
-        Args:
-            meas (str): Measurement to set
-            param1 (str): First parameter of setting function
-            param2 (str): Second parameter of setting function
-
-        Returns:
-            dict: response of setting function
-        """
-        resp = {}
-        upper_meas = str(meas).upper()
-        # Set gas - Param1 = gas: str = "", Param2 = save: bool = ""
-        if upper_meas == "GAS":
-            resp.update(await self.gas(str(param1), str(param2)))
-        # Set setpoint - Param1 = value: float = "", Param2 = unit: str = ""
-        elif upper_meas in ["SETPOINT", "STPT"]:
-            resp.update(await self.setpoint(str(param1), str(param2)))
-        # Set loop control variable - Param1 = statistic: str = ""
-        elif upper_meas in ["LOOP", "LOOP CTRL"]:
-            resp.update(await self.loop_control_var(str(param1)))
-        return resp
-    '''
-
-    async def set(self, comm: dict[str, str | float]) -> dict[str, str | float]:
+    async def set(self, comm: dict[str, list[str | float]]) -> dict[str, str | float]:
         """Sets the values of measurements for the device.
 
         Example:
             df = run(dev.set, {"Setpt": 50})
+            df = run(dev.set, {"Setpt": [1.5, "SSCS"]})
 
         Args:
-            comm (dict[str, str | float]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
+            comm (dict[str, list[str | float]]): Dictionary with command to set as key, parameters as values. Use a list for multiple parameters
 
         Returns:
             dict[str, str | float]: Response of setting function
