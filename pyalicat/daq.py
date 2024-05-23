@@ -5,6 +5,7 @@ Date: 2024-01-07
 """
 
 import device
+from typing import Any
 from trio import run
 
 
@@ -28,14 +29,14 @@ class DAQ:
         return
 
     @classmethod
-    async def init(cls, devs: dict[str, str]) -> "DAQ":
+    async def init(cls, devs: dict[str, str | device.Device]) -> "DAQ":
         """Initializes the DAQ.
 
         Example:
             Daq = run(DAQ.init, {'A':'/dev/ttyUSB0', 'B':'/dev/ttyUSB1'})
 
         Args:
-            devs (dict[str, str]): The dictionary of devices to add. Name:Port
+            devs (dict[str, str | device.Device]): The dictionary of devices to add. Name:Port
 
         Returns:
             DAQ: The DAQ object.
@@ -44,19 +45,26 @@ class DAQ:
         await daq.add_device(devs)
         return daq
 
-    async def add_device(self, devs: dict[str, str]) -> None:
+    async def add_device(
+        self, devs: dict[str, str | device.Device], **kwargs: Any
+    ) -> None:
         """Creates and initializes the devices.
 
         Args:
-            devs (dict[str, str]): The dictionary of devices to add. Name:Port
+            devs (dict[str, str | Device]): The dictionary of devices to add. Name:Port or Name:Device
+            **kwargs: Any
         """
-        if isinstance(devs, str):
-            devs = devs.split()
-            # This works if the string is the format "Name Port"
-            devs = {devs[0]: devs[1]}
-        for name in devs:
-            dev = await device.Device.new_device(devs[name])
-            dev_list.update({name: dev})
+        if devs:
+            if isinstance(devs, str):
+                devs = devs.split()
+                # This works if the string is the format "Name Port"
+                devs = {devs[0]: devs[1]}
+            for name in devs:
+                if isinstance(devs[name], str):
+                    dev = await device.Device.new_device(devs[name], **kwargs)
+                    dev_list.update({name: dev})
+                elif isinstance(devs[name], device.Device):
+                    dev_list.update({name: devs[name]})
         return
 
     async def remove_device(self, name: list[str]) -> None:
@@ -148,5 +156,7 @@ class DAQLogging:
         ----------
         config : dict
             The configuration dictionary. {Name : port}
+                Device, quality, and rate are required.
+                Prototype with a .csv, eventually .hdf5 when ready.
         """
         pass

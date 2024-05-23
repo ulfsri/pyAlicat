@@ -23,7 +23,7 @@ def gas_correction():
     pass
 
 
-async def find_devices() -> list[str]:
+async def find_devices() -> dict[str, Device]:
     """Finds all connected Alicat devices.
 
     Find all available serial ports using the `ls` command
@@ -36,7 +36,7 @@ async def find_devices() -> list[str]:
 
 
     Returns:
-        list[str]: A list of all connected Alicat devices.
+        dict[str, Omron]: A dictionary of all connected Alicat devices. Port:Object
     """
     # Get the list of available serial ports
     result = glob.glob("/dev/ttyUSB*")
@@ -51,41 +51,24 @@ async def find_devices() -> list[str]:
     return devices
 
 
-async def is_alicat_device(port: str, id: str = "A", **kwargs: Any) -> bool:
+async def is_alicat_device(
+    port: str, id: str = "A", **kwargs: Any
+) -> bool | tuple[bool, Device]:
     """Check if the given port is an Alicat device.
 
     Parameters:
         port (str): The name of the serial port.
         id (str): The device ID. Default is "A".
+        **kwargs: Additional keyword arguments.
 
     Returns:
         bool: True if the port is an Alicat device, False otherwise.
+        Device: The device object if the port is an Alicat device.
     """
-    if port.startswith("/dev/"):
-        device = SerialDevice(port, **kwargs)
-    dev_info = await device._write_readall(f"{id}??M*")
-    if not dev_info:
+    try:
+        return (True, await Device.new_device(port, **kwargs))
+    except ValueError:
         return False
-    INFO_KEYS = [
-        "manufacturer",
-        "website",
-        "phone",
-        "website",
-        "model",
-        "serial",
-        "manufactured",
-        "calibrated",
-        "calibrated_by",
-        "software",
-    ]
-    dev_info = dict(
-        zip(INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
-    )
-
-    for cls in all_subclasses(Device):
-        if cls.is_model(dev_info.get("model", "")):
-            return (True, cls.__name__)
-    return False
 
 
 def get_device_type(port):
