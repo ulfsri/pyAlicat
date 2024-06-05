@@ -7,11 +7,14 @@ Date: 2024-01-07
 import glob
 from comm import SerialDevice
 from device import all_subclasses, Device
-from trio import run
+from trio import open_nursery
+from trio_asyncio import run
 import trio
 import re
 from typing import Any
 import daq
+import warnings
+from threading import Thread
 
 
 def gas_correction():
@@ -21,6 +24,22 @@ def gas_correction():
         float: The gas correction factor.
     """
     pass
+
+
+async def update_dict_dev(devices, port) -> dict[str, dict[str, str | float]]:
+    """Updates the dictionary with the new values.
+
+    Args:
+        devices (dict): The dictionary of devices.
+        port (str): The name of the serial port.
+
+    Returns:
+        dict: The dictionary of devices with the updated values.
+    """
+    dev = await is_alicat_device(port)
+    if dev:
+        devices.update({port: dev[1]})
+    return devices
 
 
 async def find_devices() -> dict[str, Device]:
@@ -43,11 +62,9 @@ async def find_devices() -> dict[str, Device]:
 
     # Iterate through the output and check for Alicat devices
     devices = {}
-    for port in result:
-        # Check if the port is an Alicat device
-        dev = await is_alicat_device(port)
-        if dev:
-            devices.update({port: dev[1]})
+    async with open_nursery() as g:
+        for port in result:
+            g.start_soon(update_dict_dev, devices, port)
     return devices
 
 

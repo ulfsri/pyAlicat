@@ -10,6 +10,7 @@ from trio import run
 import warnings
 
 # from .device import Device
+warnings.filterwarnings("always")
 
 
 class VersionError(Exception):
@@ -153,6 +154,8 @@ class Device(ABC):
                 ret[idx] = float(ret[idx])
             except ValueError:
                 pass
+            if ret[idx] == "--":
+                ret[idx] = None
         return dict(zip(stats, ret))
 
     async def start_stream(self) -> None:
@@ -191,7 +194,7 @@ class Device(ABC):
         Returns:
             dict[str, str]: Reports the gas and its code and names.
         """
-        LABELS = ["Unit ID", "Gas Code", "Gas", "Gas Long"]
+        LABELS = ["Unit_ID", "Gas_Code", "Gas", "Gas_Long"]
         if gas and self._vers and self._vers < 10.05:
             # print("Error: Version earlier than 10v05, running Set Gas")
             warnings.warn("Version earlier than 10v05, running Set Gas")
@@ -339,7 +342,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Auto-tare", "Delay (s)"]
+        LABELS = ["Unit_ID", "Auto-tare", "Delay_(s)"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}ZCA {enable} {delay}")
@@ -406,7 +409,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Unit_Code", "Unit_Label"]
         if isinstance(group, bool):
             group = "1" if group else "0"
         if isinstance(override, bool):
@@ -438,7 +441,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Value", "Time Const"]
+        LABELS = ["Unit_ID", "Value", "Time_Const"]
         if stat_val.upper() == "ALL":
             stat_val = 1
         else:
@@ -467,7 +470,7 @@ class Device(ABC):
             # print("Error: Version earlier than 6v00")
             raise VersionError("Version earlier than 6v00")
             return
-        LABELS = ["Unit ID", "Max Value", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Max_Value", "Unit_Code", "Unit_Label"]
         ret = await self._device._write_readline(
             f"{self._id}FPF {statistics[stat_val]} {units[unit]}"
         )
@@ -491,7 +494,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Power-Up Tare"]
+        LABELS = ["Unit_ID", "Power-Up_Tare"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}ZCP {enable}")
@@ -538,7 +541,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Curr Press Ref", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Curr_Press_Ref", "Unit_Code", "Unit_Label"]
         if stp.upper == "NTP":
             stp = "N"
         if stp.upper() != "N":
@@ -572,7 +575,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Curr Temp Ref", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Curr_Temp_Ref", "Unit_Code", "Unit_Label"]
         if stp.upper == "NTP":
             stp = "N"
         if stp.upper() != "N":
@@ -603,7 +606,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Zero Band (%)"]
+        LABELS = ["Unit_ID", "Zero_Band_(%)"]
         if isinstance(zb, (float, int)):
             zb = f"0 {zb}"
         ret = await self._device._write_readline(f"{self._id}DCZ {zb}")
@@ -635,7 +638,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Value", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Value", "Unit_Code", "Unit_Label"]
         if primary.upper() == "SECONDARY" or primary.upper() == "2ND":
             primary = "1"
         if val != "":
@@ -683,7 +686,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Baud"]
+        LABELS = ["Unit_ID", "Baud"]
         VALID_BAUD_RATES = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
         if new_baud != "" and int(new_baud) not in VALID_BAUD_RATES:
             new_baud = ""
@@ -710,7 +713,7 @@ class Device(ABC):
             # print("Error: Version earlier than 8v28")
             raise VersionError("Version earlier than 8v28")
             return
-        LABELS = ["Unit ID", "Flashing?"]
+        LABELS = ["Unit_ID", "Flashing?"]
         ret = await self._device._write_readline(f"{self._id}FFP {dur}")
         ret = ret.split()
         output_mapping = {"1": "Yes", "0": "No"}
@@ -742,7 +745,7 @@ class Device(ABC):
         Returns:
             dict[str, str]: Current firmware vesion and its date of creation
         """
-        LABELS = ["Unit ID", "Vers", "Creation Date"]
+        LABELS = ["Unit_ID", "Vers", "Creation_Date"]
         ret = await self._device._write_readline(f"{self._id}VE")
         ret = ret.split()
         ret[2] = " ".join(ret[2:])
@@ -797,13 +800,13 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Active Actions Total"]
+        LABELS = ["Unit_ID", "Active_Actions_Total"]
         action_dict = {
-            "Primary Press": 1,
-            "Secondary Press": 2,
+            "Primary_Press": 1,
+            "Secondary_Press": 2,
             "Flow": 4,
-            "Reset Totalizer 1": 8,
-            "Reset Totalizer 2": 16,
+            "Reset_Totalizer_1": 8,
+            "Reset_Totalizer_2": 16,
         }
         act_tot = sum([action_dict.get(act, 0) for act in actions])
         if not actions:
@@ -855,9 +858,9 @@ class Device(ABC):
             raise VersionError("Version earlier than 8v24")
             return
         if val == "":
-            LABELS = ["Unit ID", "Curr. Value"]
+            LABELS = ["Unit_ID", "Curr_Value"]
         else:
-            LABELS = ["Unit ID", "New Value"]
+            LABELS = ["Unit_ID", "New_Value"]
         ret = await self._device._write_readline(f"{self._id}UD {slot} {val}")
         ret = ret.split()
         return dict(zip(LABELS, ret))
@@ -878,7 +881,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Interval (ms)"]
+        LABELS = ["Unit_ID", "Interval_(ms)"]
         ret = await self._device._write_readline(f"{self._id}NCS {interval}")
         ret = ret.split()
         ret[1] = int(ret[1])
@@ -944,18 +947,18 @@ class Device(ABC):
             gas_string += f" {gas_dict[x]} {gases[x]}"
 
         LABELS = [
-            "Unit ID",
-            "Gas Num",
-            "Gas1 Name",
-            "Gas1 Perc",
-            "Gas2 Name",
-            "Gas2 Perc",
-            "Gas3 Name",
-            "Gas3 Perc",
-            "Gas4 Name",
-            "Gas4 Perc",
-            "Gas5 Name",
-            "Gas5 Perc",
+            "Unit_ID",
+            "Gas_Num",
+            "Gas1_Name",
+            "Gas1_Perc",
+            "Gas2_Name",
+            "Gas2_Perc",
+            "Gas3_Name",
+            "Gas3_Perc",
+            "Gas4_Name",
+            "Gas4_Perc",
+            "Gas5_Name",
+            "Gas5_Perc",
         ]
         ret = await self._device._write_readline(
             f"{self._id}GM {name} {number}{gas_string}"
@@ -982,7 +985,7 @@ class Device(ABC):
             # print("Error: Version earlier than 5v00")
             raise VersionError("Version earlier than 5v00")
             return
-        LABELS = ["Unit ID", "Deleted Gas Num"]
+        LABELS = ["Unit_ID", "Deleted_Gas_Num"]
         ret = await self._device._write_readline(f"{self._id}GD {gasN}")
         ret = ret.split()
         return dict(zip(LABELS, ret))
@@ -1004,18 +1007,18 @@ class Device(ABC):
             raise VersionError("Version earlier than 9v00")
             return
         LABELS = [
-            "Unit ID",
-            "Gas Num",
-            "Gas1 Name",
-            "Gas1 Perc",
-            "Gas2 Name",
-            "Gas2 Perc",
-            "Gas3 Name",
-            "Gas3 Perc",
-            "Gas4 Name",
-            "Gas4 Perc",
-            "Gas5 Name",
-            "Gas5 Perc",
+            "Unit_ID",
+            "Gas_Num",
+            "Gas1_Name",
+            "Gas1_Perc",
+            "Gas2_Name",
+            "Gas2_Perc",
+            "Gas3_Name",
+            "Gas3_Perc",
+            "Gas4_Name",
+            "Gas4_Perc",
+            "Gas5_Name",
+            "Gas5_Perc",
         ]
         ret = await self._device._write_readall(f"{self._id}GC {gasN}")
         ret = ret[0].replace("=", " ").split()
@@ -1069,13 +1072,13 @@ class Device(ABC):
             raise VersionError("Version earlier than 10v00")
             return
         LABELS = [
-            "Unit ID",
+            "Unit_ID",
             "Totalizer",
-            "Flow Stat Val",
+            "Flow_Stat_Val",
             "Mode",
-            "Limit Mode",
-            "num Digits",
-            "Dec Place",
+            "Limit_Mode",
+            "Num_Digits",
+            "Dec_Place",
         ]
         if flow_stat_val != "":
             flow_stat_val = statistics.get(flow_stat_val, -1)
@@ -1159,7 +1162,7 @@ class Device(ABC):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Saving"]
+        LABELS = ["Unit_ID", "Saving"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}TCR {enable}")
@@ -1188,6 +1191,7 @@ class Device(ABC):
             i[[idx for idx, s in enumerate(df_table[0]) if "NAME" in s][0]].strip()
             for i in df_table[1:-1]
         ]
+        df_format = [i.replace(" ", "_") for i in df_format]
         df_ret = [
             i[[idx for idx, s in enumerate(df_table[0]) if "TYPE" in s][0]].strip()
             for i in df_table[1:-1]
@@ -1210,7 +1214,7 @@ class Device(ABC):
         units = []
         for stat in stats:
             ret = await self._engineering_units(stat)
-            units.append(ret["Unit Label"])
+            units.append(ret["Unit_Label"])
         return dict(zip(stats, units))
 
     async def set_units(self, stats: dict[str, str]) -> dict[str, str]:
@@ -1224,7 +1228,7 @@ class Device(ABC):
         """
         for stat in stats:
             ret = await self._engineering_units(stat, stats[stat])
-            stats[stat] = ret["Unit Label"]
+            stats[stat] = ret["Unit_Label"]
         return stats
 
     async def get(self, measurements: list[str] = ["@"]) -> dict[str, str | float]:
@@ -1242,6 +1246,8 @@ class Device(ABC):
         if isinstance(measurements, str):
             measurements = measurements.split()
         # Request
+        if not measurements:
+            measurements = ["@"]
         for meas in measurements:
             if meas in statistics:
                 reqs.append(meas)
@@ -1356,13 +1362,15 @@ class FlowController(FlowMeter):
             warnings.warn("Version earlier than 9v00, running Change Setpoint")
             return await self.change_setpoint(value)
         LABELS = [
-            "Unit ID",
-            "Current Setpt",
-            "Requested Setpt",
-            "Unit Code",
-            "Unit Label",
+            "Unit_ID",
+            "Curr_Setpt",
+            "Requested_Setpt",
+            "Unit_Code",
+            "Unit_Label",
         ]
         ret = await self._device._write_readline(f"{self._id}LS {value} {units[unit]}")
+        if ret == "?":
+            raise ValueError("Invalid setpoint value")
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
         return dict(zip(LABELS, ret))
@@ -1421,7 +1429,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v00")
             raise VersionError("Version earlier than 10v00")
             return
-        LABELS = ["Unit ID", "Totalizer", "Batch Size", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Totalizer", "Batch_Size", "Unit_Code", "Unit_Label"]
         ret = await self._device._write_readline(
             f"{self._id}TB {totalizer} {batch_vol} {units[unit]}"
         )
@@ -1442,7 +1450,7 @@ class FlowController(FlowMeter):
         Returns:
             dict[str, str | float]: Reports deadband with units
         """
-        LABELS = ["Unit ID", "Deadband", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Deadband", "Unit_Code", "Unit_Label"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(f"{self._id}LCDB {save} {limit}")
@@ -1466,7 +1474,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Mode"]
+        LABELS = ["Unit_ID", "Mode"]
         mode = (
             "1"
             if mode.upper() in ["HOLD", "CURRENT"]
@@ -1499,7 +1507,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Algorithm"]
+        LABELS = ["Unit_ID", "Algorithm"]
         algo = (
             "2"
             if algo.upper() in ["PD2I"]
@@ -1529,7 +1537,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 9v00")
             raise VersionError("Version earlier than 9v00")
             return
-        LABELS = ["Unit ID", "Loop Var Val"]
+        LABELS = ["Unit_ID", "Loop_Var_Val"]
         # If the user did not specify setpoint, assume Setpt
         if var and var[-6:] != "_Setpt":
             var += "_Setpt"
@@ -1561,7 +1569,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 9v00")
             raise VersionError("Version earlier than 9v00")
             return
-        LABELS = ["Unit ID", "Loop Var", "Min", "Max", "Unit Code", "Unit Label"]
+        LABELS = ["Unit_ID", "Loop_Var", "Min", "Max", "Unit_Code", "Unit_Label"]
         if self._vers and self._vers < 10.05:
             # print("Error: Version earlier than 10v05, max and min not supported")
             warnings.warn("Version earlier than 10v05")
@@ -1597,7 +1605,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 7v11")
             raise VersionError("Version earlier than 7v11")
             return
-        LABELS = ["Unit ID", "Max Ramp Rate", "Unit Code", "Time Code", "Units"]
+        LABELS = ["Unit_ID", "Max_Ramp_Rate", "Unit_Code", "Time_Code", "Units"]
         ret = await self._device._write_readline(f"{self._id}SR {max} {units[unit]}")
         ret = ret.split()
         ret[1] = float(ret[1])
@@ -1625,7 +1633,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "P  Gain", "D Gain"]
+        LABELS = ["Unit_ID", "P_Gain", "D_Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(
@@ -1659,7 +1667,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "P  Gain", "I Gain", "D Gain"]
+        LABELS = ["Unit_ID", "P_Gain", "I_Gain", "D_Gain"]
         if isinstance(save, bool):
             save = "1" if save else "0"
         ret = await self._device._write_readline(
@@ -1746,7 +1754,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Ramp Up", "Ramp Down", "Zero Ramp", "Power Up Ramp"]
+        LABELS = ["Unit_ID", "Ramp_Up", "Ramp_Down", "Zero_Ramp", "Power_Up_Ramp"]
         if isinstance(up, bool):
             up = "1" if up else "0"
         if isinstance(down, bool):
@@ -1786,13 +1794,13 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Mode"]
+        LABELS = ["Unit_ID", "Mode"]
         ret = await self._device._write_readline(f"{self._id}LSS {mode}")
         ret = ret.split()
         mapping = {
             "A": "Analog",
-            "S": "Serial/Display, Saved",
-            "U": "Serial/Display, Unsaved",
+            "S": "Serial/Display_Saved",
+            "U": "Serial/Display_Unsaved",
         }
         ret[1] = mapping.get(ret[1], ret[1])
         return dict(zip(LABELS, ret))
@@ -1817,7 +1825,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Init Offset (%)", "Closed Offset (%)"]
+        LABELS = ["Unit_ID", "Init_Offset_(%)", "Closed_Offset_(%)"]
         if isinstance(save, bool):
             save = "0 1" if save else "0 0"
         ret = await self._device._write_readline(
@@ -1843,7 +1851,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
             return
-        LABELS = ["Unit ID", "Active Ctrl"]
+        LABELS = ["Unit_ID", "Active_Ctrl"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
@@ -1964,7 +1972,7 @@ class FlowController(FlowMeter):
             # print("Error: Version earlier than 8v18")
             raise VersionError("Version earlier than 8v18")
             return
-        LABELS = ["Unit ID", "Upstream Valve", "Downstream Valve", "Exhaust Valve"]
+        LABELS = ["Unit_ID", "Upstream_Valve", "Downstream_Valve", "Exhaust_Valve"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
         ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
@@ -2001,7 +2009,7 @@ class FlowController(FlowMeter):
             elif upper_meas in ["SETPOINT", "SETPT"]:
                 resp.update(await self.setpoint(str(comm[meas][0]), str(comm[meas][1])))
             # Set loop control variable - Param1 = statistic: str = ""
-            elif upper_meas in ["LOOP", "LOOP CTRL"]:
+            elif upper_meas in ["LOOP", "LOOP_CTRL"]:
                 resp.update(await self.loop_control_var(str(comm[meas][0])))
         return resp
 
@@ -2023,6 +2031,8 @@ class FlowController(FlowMeter):
         if isinstance(measurements, str):
             measurements = measurements.split()
         # Request
+        if not measurements:
+            measurements = ["@"]
         for meas in measurements:
             if meas and meas in statistics:
                 reqs.append(meas)
