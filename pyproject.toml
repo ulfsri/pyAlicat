@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pyAlicat"
-version = "0.0.2"
+version = "0.0.3"
 description = "Python API for acquisition and control of Alicat mass flow meters and controllers."
 readme = "README.md"
 authors = ["ulfsri <grayson.bellamy@ul.org>"]
