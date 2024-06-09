@@ -4,13 +4,14 @@ Author: Grayson Bellamy
 Date: 2024-01-05
 """
 
-from typing import Optional
-from collections.abc import ByteString
-
 from abc import ABC, abstractmethod
+from collections.abc import ByteString
+from typing import Optional
 
-import trio
-from trio_serial import Parity, SerialStream, StopBits
+import anyio
+import anyio.lowlevel
+from anyserial import SerialStream
+from anyserial.abstract import Parity, StopBits
 
 
 class CommDevice(ABC):
@@ -111,13 +112,13 @@ class SerialDevice(CommDevice):
             "bytesize": databits,
             "parity": parity,
             "stopbits": stopbits,
-            "xonxoff": xonxoff,
-            "rtscts": rtscts,
+            # "xonxoff": xonxoff,
+            # "rtscts": rtscts,
         }
         self.isOpen = False
         self.ser_devc = SerialStream(**self.serial_setup)
 
-    async def _read(self, len: int = 1) -> ByteString:
+    async def _read(self, len: int = None) -> ByteString:
         """Reads the serial communication.
 
         Args:
@@ -126,13 +127,15 @@ class SerialDevice(CommDevice):
         Returns:
             ByteString: The serial communication.
         """
+        if len is None:
+            len = self.ser_devc.in_waiting()
+            if len == 0:
+                return None
         if not self.isOpen:
             async with self.ser_devc:
-                with trio.move_on_after(self.timeout / 1000):
-                    return await self.ser_devc.receive_some(len)
-        else:
-            with trio.move_on_after(self.timeout / 1000):
                 return await self.ser_devc.receive_some(len)
+        else:
+            return await self.ser_devc.receive_some(len)
         return None
 
     async def _write(self, command: str) -> None:
@@ -143,10 +146,10 @@ class SerialDevice(CommDevice):
         """
         if not self.isOpen:
             async with self.ser_devc:
-                with trio.move_on_after(self.timeout / 1000):
+                with anyio.move_on_after(self.timeout / 1000):
                     await self.ser_devc.send_all(command.encode("ascii") + self.eol)
         else:
-            with trio.move_on_after(self.timeout / 1000):
+            with anyio.move_on_after(self.timeout / 1000):
                 await self.ser_devc.send_all(command.encode("ascii") + self.eol)
         return None
 
@@ -161,12 +164,16 @@ class SerialDevice(CommDevice):
             line = bytearray()
             while True:
                 c = None
-                with trio.move_on_after(self.timeout / 1000):
-                    c = await self._read(1)
-                    line += c
-                    if c == self.eol:
-                        break
-                if c is None:
+                with anyio.move_on_after(
+                    self.timeout / 1000
+                ):  # if keep reading none, then timeout
+                    while c is None:  # Keep reading until a character is read
+                        c = await self._read()
+                        await anyio.lowlevel.checkpoint()
+                if c is None:  # if we reach timeout,
+                    break
+                line += c
+                if self.eol in line:
                     break
         self.isOpen = False
         return line.decode("ascii")
@@ -187,16 +194,18 @@ class SerialDevice(CommDevice):
             await self._write(command)
             line = bytearray()
             arr_line = []
-            with trio.move_on_after(timeout / 1000):
-                while True:
-                    c = await self._read(1)
-                    if c is None:
-                        break
-                    if c == self.eol:
-                        arr_line.append(line.decode("ascii"))
-                        line = bytearray()
-                    else:
-                        line += c
+            while True:
+                c = None
+                with anyio.move_on_after(
+                    self.timeout / 1000
+                ):  # if keep reading none, then timeout
+                    while c is None:  # Keep reading until a character is read
+                        c = await self._read()
+                        await anyio.lowlevel.checkpoint()
+                if c is None:  # if we reach timeout,
+                    break
+                line += c
+        arr_line = line.decode("ascii").splitlines()
         self.isOpen = False
         return arr_line
 
@@ -215,12 +224,16 @@ class SerialDevice(CommDevice):
             line = bytearray()
             while True:
                 c = None
-                with trio.move_on_after(self.timeout / 1000):
-                    c = await self._read(1)
-                    if c == self.eol:
-                        break
-                    line += c
-                if c is None:
+                with anyio.move_on_after(
+                    self.timeout / 1000
+                ):  # if keep reading none, then timeout
+                    while c is None:  # Keep reading until a character is read
+                        c = await self._read()
+                        await anyio.lowlevel.checkpoint()
+                if c is None:  # if we reach timeout,
+                    break
+                line += c
+                if self.eol in line:
                     break
         self.isOpen = False
         return line.decode("ascii")

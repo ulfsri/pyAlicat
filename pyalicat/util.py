@@ -5,16 +5,15 @@ Date: 2024-01-07
 """
 
 import glob
-from comm import SerialDevice
-from device import all_subclasses, Device
-from trio import open_nursery
-from trio_asyncio import run
-import trio
 import re
-from typing import Any
-import daq
 import warnings
 from threading import Thread
+from typing import Any
+
+import daq
+from anyio import create_task_group, run
+from comm import SerialDevice
+from device import Device, all_subclasses
 
 
 def gas_correction():
@@ -62,7 +61,7 @@ async def find_devices() -> dict[str, Device]:
 
     # Iterate through the output and check for Alicat devices
     devices = {}
-    async with open_nursery() as g:
+    async with create_task_group() as g:
         for port in result:
             g.start_soon(update_dict_dev, devices, port)
     return devices

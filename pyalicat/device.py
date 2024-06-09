@@ -1,13 +1,21 @@
-from typing import Any
+"""This module contains the Device class and its subclasses.
+
+Raises:
+    VersionError: Raised when the version of the device does not support command.
+
+Returns:
+    dict: The dictionary of devices with the updated values.
+"""
 
 import json
 import re
-from abc import ABC
-
-from comm import SerialDevice
-import trio
-from trio import run
 import warnings
+from abc import ABC
+from typing import Any
+
+import anyio
+from anyio import run
+from comm import SerialDevice
 
 # from .device import Device
 warnings.filterwarnings("always")
@@ -1206,7 +1214,7 @@ class Device(ABC):
         """Gets the units of the current dataframe format of the device.
 
         Args:
-            measurement (list): List of measurements to get units for.
+            stats (list): List of statistics to get units for.
 
         Returns:
             list: Units of statistics in measurement
