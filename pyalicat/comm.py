@@ -6,7 +6,6 @@ Date: 2024-01-05
 
 from abc import ABC, abstractmethod
 from collections.abc import ByteString
-from typing import Optional
 
 import anyio
 import anyio.lowlevel
@@ -26,14 +25,14 @@ class CommDevice(ABC):
         self.timeout = timeout
 
     @abstractmethod
-    async def _read(self, len: int) -> Optional[str]:
+    async def _read(self, len: int) -> ByteString | None:
         """Reads the serial communication.
 
         Args:
             len (int): The length of the serial communication to read. One character if not specified.
 
         Returns:
-            str: The serial communication.
+            ByteString: The serial communication.
         """
         pass
 
@@ -52,7 +51,7 @@ class CommDevice(ABC):
         pass
 
     @abstractmethod
-    async def _readline(self) -> Optional[str]:
+    async def _readline(self) -> str | None:
         """Reads the serial communication until end-of-line character reached.
 
         Returns:
@@ -61,7 +60,7 @@ class CommDevice(ABC):
         pass
 
     @abstractmethod
-    async def _write_readline(self, command: str) -> Optional[str]:
+    async def _write_readline(self, command: str) -> str | None:
         """Writes the serial communication and reads the response until end-of-line character reached.
 
         Args:
@@ -118,7 +117,7 @@ class SerialDevice(CommDevice):
         self.isOpen = False
         self.ser_devc = SerialStream(**self.serial_setup)
 
-    async def _read(self, len: int = None) -> ByteString:
+    async def _read(self, len: int | None = None) -> ByteString | None:
         """Reads the serial communication.
 
         Args:
@@ -178,7 +177,9 @@ class SerialDevice(CommDevice):
         self.isOpen = False
         return line.decode("ascii")
 
-    async def _write_readall(self, command: str, timeout: int = None) -> list[str]:
+    async def _write_readall(
+        self, command: str, timeout: int | None = None
+    ) -> list[str]:
         """Write command and read until timeout reached.
 
         Args:
@@ -186,14 +187,14 @@ class SerialDevice(CommDevice):
             timeout (int): The timeout of the Alicat device in ms.
 
         Returns:
-            list[str]: List of lines read from the device.
+            arr_line (list[str]): List of lines read from the device.
         """
         timeout = self.timeout if timeout is None else timeout
         async with self.ser_devc:
             self.isOpen = True
             await self._write(command)
             line = bytearray()
-            arr_line = []
+            arr_line: list[str] = []
             while True:
                 c = None
                 with anyio.move_on_after(

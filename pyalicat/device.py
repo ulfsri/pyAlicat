@@ -10,14 +10,11 @@ Returns:
 import json
 import re
 import warnings
-from abc import ABC
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, Self
 
-import anyio
-from anyio import run
 from comm import SerialDevice
 
-# from .device import Device
 warnings.filterwarnings("always")
 
 
@@ -34,7 +31,7 @@ units = codes["units"][0]
 gases = codes["gases"][0]
 
 
-def all_subclasses(cls: type[ABC]) -> set[type[ABC]]:
+def all_subclasses(cls: type) -> set[type]:
     """Returns all subclasses of a class.
 
     Args:
@@ -51,8 +48,25 @@ def all_subclasses(cls: type[ABC]) -> set[type[ABC]]:
 class Device(ABC):
     """Generic device class."""
 
+    @classmethod
+    @abstractmethod
+    def is_model(cls, model: str) -> bool:
+        """Determines if the model is the correct model for the device.
+
+        Args:
+            model (str): The model to check.
+
+        Returns:
+            bool: True if the model is correct, False otherwise.
+        """
+        pass
+
     def __init__(
-        self, device: SerialDevice, dev_info: dict, id: str = "A", **kwargs: Any
+        self,
+        device: SerialDevice,
+        dev_info: dict[str, str],
+        id: str = "A",
+        **kwargs: Any,
     ) -> None:
         """Initialize the Device object.
 
@@ -74,7 +88,7 @@ class Device(ABC):
         )
 
     @classmethod
-    async def new_device(cls, port: str, id: str = "A", **kwargs: Any):
+    async def new_device(cls, port: str, id: str = "A", **kwargs: Any) -> Self:
         """Creates a new device. Chooses appropriate device based on characteristics.
 
         Example:
@@ -149,11 +163,9 @@ class Device(ABC):
             dict[str, str | float]: The requested statistics.
         """
         if len(stats) > 13:
-            # print("Too many statistics requested, discarding excess")
             raise IndexError("Too many statistics requested")
-            stats = stats[:13]
+            # stats = stats[:13]
         ret = await self._device._write_readline(
-            # Add 150 ms to the given time
             f"{self._id}DV {time} {' '.join(str(statistics[stat]) for stat in stats)}"  # add a parameter for time out here
         )
         ret = ret.split()
@@ -171,7 +183,7 @@ class Device(ABC):
         await self._device._write(f"{self._id}@ @")
         return
 
-    async def stop_stream(self, new_id: str = None) -> None:
+    async def stop_stream(self, new_id: str | None = None) -> None:
         """Stops streaming data from device.
 
         Example:
@@ -186,7 +198,9 @@ class Device(ABC):
         self.id = new_id
         return
 
-    async def gas(self, gas: str = "", save: bool = "") -> dict[str, str]:
+    async def gas(
+        self, gas: str | None = None, save: bool | None = None
+    ) -> dict[str, str]:
         """Gets/Sets the gas of the device.
 
         Example:
@@ -204,18 +218,17 @@ class Device(ABC):
         """
         LABELS = ["Unit_ID", "Gas_Code", "Gas", "Gas_Long"]
         if gas and self._vers and self._vers < 10.05:
-            # print("Error: Version earlier than 10v05, running Set Gas")
             warnings.warn("Version earlier than 10v05, running Set Gas")
-            return await self.set_gas(gas)
+            return await self._set_gas(gas)
         gas = gases.get(gas, "")
         if not gas:
-            save = ""
+            save = None
         if isinstance(save, bool):
-            save = "1" if save else "0"
-        ret = await self._device._write_readline(f"{self._id}GS {gas} {save}")
+            savestr = "1" if save else "0"
+        ret = await self._device._write_readline(f"{self._id}GS {gas or ""} {savestr}")
         return dict(zip(LABELS, ret.split()))
 
-    async def _set_gas(self, gas: str = "") -> dict[str, str]:
+    async def _set_gas(self, gas: str | None = None) -> dict[str, str]:
         """Sets the gas of the device.
 
         Example:
@@ -237,7 +250,7 @@ class Device(ABC):
         if self._df_format is None:
             await self.get_df_format()
         gas = gases.get(gas, "")
-        ret = await self._device._write_readline(f"{self._id}G {gas}")
+        ret = await self._device._write_readline(f"{self._id}G {gas or ""}")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
             df[index] = float(df[index])
@@ -1858,7 +1871,6 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             # print("Error: Version earlier than 10v05")
             raise VersionError("Version earlier than 10v05")
-            return
         LABELS = ["Unit_ID", "Active_Ctrl"]
         if isinstance(enable, bool):
             enable = "1" if enable else "0"
