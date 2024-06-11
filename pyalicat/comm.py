@@ -195,17 +195,18 @@ class SerialDevice(CommDevice):
             await self._write(command)
             line = bytearray()
             arr_line: list[str] = []
-            while True:
-                c = None
-                with anyio.move_on_after(
-                    self.timeout / 1000
-                ):  # if keep reading none, then timeout
-                    while c is None:  # Keep reading until a character is read
-                        c = await self._read()
-                        await anyio.lowlevel.checkpoint()
-                if c is None:  # if we reach timeout,
-                    break
-                line += c
+            with anyio.move_on_after(self.timeout / 1000):
+                while True:
+                    c = None
+                    with anyio.move_on_after(
+                        self.timeout / 1000
+                    ):  # if keep reading none, then timeout
+                        while c is None:  # Keep reading until a character is read
+                            c = await self._read()
+                            await anyio.lowlevel.checkpoint()
+                    if c is None:  # if we reach timeout,
+                        break
+                    line += c
         arr_line = line.decode("ascii").splitlines()
         self.isOpen = False
         return arr_line
