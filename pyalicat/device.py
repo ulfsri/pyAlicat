@@ -7,6 +7,7 @@ Returns:
     dict: The dictionary of devices with the updated values.
 """
 
+import importlib
 import json
 import re
 import warnings
@@ -24,8 +25,11 @@ class VersionError(Exception):
     pass
 
 
-with open("codes.json") as f:
+codes = importlib.resources.files("pyalicat").joinpath("codes.json")
+with open(codes) as f:
     codes = json.load(f)
+
+
 statistics = codes["statistics"][0]
 units = codes["units"][0]
 gases = codes["gases"][0]
