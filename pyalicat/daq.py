@@ -27,8 +27,7 @@ class DAQ:
         TODO: Pass dictionary of names and addresses to initialize devices. Same async issue.
 
         """
-        global dev_list
-        dev_list = {}
+        self.devices: dict[str, device.Device] = {}
 
         """
         for name in devs:
@@ -71,9 +70,9 @@ class DAQ:
             for name in devs:
                 if isinstance(devs[name], str):
                     dev = await device.Device.new_device(devs[name], **kwargs)
-                    dev_list.update({name: dev})
+                    self.devices.update({name: dev})
                 elif isinstance(devs[name], device.Device):
-                    dev_list.update({name: devs[name]})
+                    self.devices.update({name: devs[name]})
         return
 
     async def remove_device(self, name: list[str]) -> None:
@@ -83,8 +82,8 @@ class DAQ:
             name (list[str]): The list of devices to remove.
         """
         for n in name:
-            await dev_list[n]._device.close()
-            del dev_list[n]
+            await self.devices[n]._device.close()
+            del self.devices[n]
         return
 
     async def dev_list(self) -> dict[str, device.Device]:
@@ -93,23 +92,23 @@ class DAQ:
         Returns:
             dict[str, device.Device]: The list of devices and their objects.
         """
-        return dev_list
+        return self.devices
 
     async def update_dict_get(
-        self, ret_dict, dev, val
+        self, ret_dict: dict[str, dict[str, str | float]], dev: str, val: list[str]
     ) -> dict[str, dict[str, str | float]]:
         """Updates the dictionary with the new values.
 
         Args:
-            ret_dict (dict): The dictionary of devices to update.
+            ret_dict (dict[str, dict[str, str | float]]): The dictionary of devices to update.
             dev (str): The name of the device.
-            val (list): The values to get from the device.
+            val (list[str]): The values to get from the device.
 
         Returns:
-            dict: The dictionary of devices with the updated values.
+            dict[str, dict[str, str | float]]: The dictionary of devices with the updated values.
         """
         start = datetime.now()
-        vals = await dev_list[dev].get(val)
+        vals = await self.devices[dev].get(val)
         vals.update(
             {
                 "Request Sent": start,
@@ -144,7 +143,7 @@ class DAQ:
             val = val.split()
         if not id:
             async with create_task_group() as g:
-                for dev in dev_list:
+                for dev in self.devices:
                     g.start_soon(self.update_dict_get, ret_dict, dev, val)
         if id and isinstance(id, str):
             id = id.split()
@@ -154,7 +153,7 @@ class DAQ:
         return ret_dict
 
     async def update_dict_set(
-        self, ret_dict, dev, command
+        self, ret_dict: dict[str, device.Device], dev: str, command: list[str]
     ) -> dict[str, dict[str, str | float]]:
         """Updates the dictionary with the new values.
 
@@ -166,10 +165,10 @@ class DAQ:
         Returns:
             dict: The dictionary of devices with the updated values.
         """
-        ret_dict.update({dev: await dev_list[dev].set(command)})
+        ret_dict.update({dev: await self.devices[dev].set(command)})
         return ret_dict
 
-    async def set(self, command: dict[str, str | float], id: list = "") -> None:
+    async def set(self, command: dict[str, str | float], id: list[str] = "") -> None:
         """Sets the data of the device.
 
         Example:
@@ -189,7 +188,7 @@ class DAQ:
             command = command.split()
         if not id:
             async with create_task_group() as g:
-                for dev in dev_list:
+                for dev in self.devices:
                     g.start_soon(self.update_dict_set, ret_dict, dev, command)
         if isinstance(id, str):
             id = id.split()
@@ -204,7 +203,7 @@ class AsyncPG:
 
     def __init__(self, **kwargs):
         """Initializes the AsyncPG object."""
-        self.conn = None
+        self.conn: asyncpg.Connection = None
         self.kwargs = kwargs
 
     async def __aenter__(self):
@@ -231,7 +230,9 @@ class AsyncPG:
 class DAQLogging:
     """Class for logging the data from Alicat devices. Creates and saves file to disk with given acquisition rate. Only used for standalone logging. Use external API for use as plugin."""
 
-    def __init__(self, Daq, qualities, rate, database) -> None:
+    def __init__(
+        self, Daq: DAQ, qualities: list[str], rate: int | float, database: str
+    ) -> None:
         """Initializes the Logging module.
 
         Note:
@@ -245,7 +246,6 @@ class DAQLogging:
             qualities (list): The list of qualities to log.
             rate (float): The rate at which to log the data in Hz.
             database (str): The name of the database to save the data to.
-            duration (float): The duration to log the data in seconds.
         """
         self.Daq = Daq
         self.qualities = qualities
@@ -253,8 +253,8 @@ class DAQLogging:
         self.database = AsyncPG(
             user="app", password="app", database="app", host="127.0.0.1"
         )
-        self.qin = None
-        self.qout = None
+        self.qin: Queue[str | function | list[function | Any]] | None = None
+        self.qout: Queue[str | float] | None = None
         return
 
     def _key_func(self, x):
@@ -309,9 +309,7 @@ class DAQLogging:
                     *dev.values(),
                 )  # We could optimize this by using a single insert statement for all devices. We would have to make sure that the order of the values is the same for all devices and it would only work if they all have the same fields. That is, it wouldn't work for the flowmeter in our case because it has RH values
 
-    async def update_dict_log(
-        self, Daq, qualities
-    ) -> dict[str, dict[str, str | float]]:
+    async def update_dict_log(self, Daq: DAQ, qualities: list[str]) -> None:
         """Updates the dictionary with the new values.
 
         Args:
@@ -329,7 +327,7 @@ class DAQLogging:
         write_async: bool = False,
         duration: float = "",
         rate: float = "",
-    ):
+    ) -> None:
         """Initializes the Logging module. Creates and saves file to disk with given acquisition rate.
 
         Args:
@@ -359,7 +357,7 @@ class DAQLogging:
                     # if stop_logging is in the queue, break out of the while loop
                     if comm == "Stop":
                         break
-                    else:
+                    elif isinstance(comm, list) and isinstance(comm[0], function):
                         df = await comm[0](*comm[1:])
                         self.qout.put(df)
                 # if not, continue logging
@@ -443,15 +441,13 @@ class DAQLogging:
             tuple[Queue, Queue]: The input and output queues for the logging process.
         """
         # Create the queue
-        qin = Queue()
-        self.qin = qin
-        qout = Queue()
-        self.qout = qout
+        self.qin = Queue()
+        self.qout = Queue()
         # Start the logging process in a thread
         t = Thread(target=run, args=(self.logging, write_async, duration, rate))
         t.start()
         # Return the queue
-        return (qin, qout)
+        return (self.qin, self.qout)
 
     async def stop_logging(self):
         """Stops the logging process.

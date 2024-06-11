@@ -34,7 +34,7 @@ units = codes["units"][0]
 gases = codes["gases"][0]
 
 
-def all_subclasses(cls) -> set:
+def all_subclasses(cls: type[ABC]) -> set[type[ABC]]:
     """Returns all subclasses of a class.
 
     Args:
