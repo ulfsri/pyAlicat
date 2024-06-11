@@ -10,10 +10,11 @@ import warnings
 from threading import Thread
 from typing import Any
 
-import daq
 from anyio import create_task_group, run
-from comm import SerialDevice
-from device import Device, all_subclasses
+
+from pyalicat import daq
+from pyalicat.comm import SerialDevice
+from pyalicat.device import Device, all_subclasses
 
 
 def gas_correction():

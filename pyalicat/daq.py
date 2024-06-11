@@ -12,8 +12,9 @@ from threading import Thread
 from typing import Any
 
 import asyncpg
-import device
 from anyio import create_task_group, run
+
+from pyalicat import device
 
 warnings.filterwarnings("always")
 

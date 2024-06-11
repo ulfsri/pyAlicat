@@ -13,7 +13,7 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Self
 
-from comm import SerialDevice
+from pyalicat.comm import SerialDevice
 
 warnings.filterwarnings("always")
 
