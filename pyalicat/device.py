@@ -123,9 +123,15 @@ class Device(ABC):
             "calibrated_by",
             "software",
         ]
-        dev_info = dict(
-            zip(INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info])
-        )
+        try:
+            dev_info = dict(
+                zip(
+                    INFO_KEYS, [i[re.search(r"M\d\d", i).end() + 1 :] for i in dev_info]
+                )
+            )
+        except AttributeError:
+            raise ValueError("No device found on port")
+        print(dev_info)
         for cls in all_subclasses(Device):
             if cls.is_model(dev_info["model"]):
                 new_cls = cls(device, dev_info, id, **kwargs)
