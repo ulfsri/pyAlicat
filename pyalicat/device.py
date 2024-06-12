@@ -131,7 +131,6 @@ class Device(ABC):
             )
         except AttributeError:
             raise ValueError("No device found on port")
-        print(dev_info)
         for cls in all_subclasses(Device):
             if cls.is_model(dev_info["model"]):
                 new_cls = cls(device, dev_info, id, **kwargs)
