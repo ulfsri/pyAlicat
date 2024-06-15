@@ -348,10 +348,10 @@ class DAQLogging:
             for dev in self.df:
                 unique.update(self.df[dev])
             await self.create_table(unique, conn)
-            start = time.time_ns()
+            start = time.perf_counter_ns()
             prev = start
             reps = 0
-            while (time.time_ns() - start) / 1e9 <= duration:
+            while (time.perf_counter_ns() - start) / 1e9 <= duration:
                 # Check if something in queue
                 if not self.qin.empty():
                     comm = self.qin.get()
@@ -362,20 +362,23 @@ class DAQLogging:
                         df = await comm[0](*comm[1:])
                         self.qout.put(df)
                 # if not, continue logging
-                if time.time_ns() / 1e9 - (reps * 1 / rate + start / 1e9) >= 1 / rate:
+                if (
+                    time.perf_counter_ns() / 1e9 - (reps * 1 / rate + start / 1e9)
+                    >= 1 / rate
+                ):
                     # Check if something is in the queue
                     print(
-                        f"Difference between readings: {(time.time_ns() - prev) / 1e9} s"
+                        f"Difference between readings: {(time.perf_counter_ns() - prev) / 1e9} s"
                     )
                     # if (
-                    #     abs(time.time_ns() / 1e9 - reps * 1 / rate - start / 1e9)
+                    #     abs(time.perf_counter_ns() / 1e9 - reps * 1 / rate - start / 1e9)
                     #     > 1.003 / rate
                     # ):
                     #     warnings.warn("Warning! Acquisition rate is too high!")
-                    time1 = time.time_ns()
-                    prev = time.time_ns()
+                    time1 = time.perf_counter_ns()
+                    prev = time.perf_counter_ns()
                     if write_async:
-                        nurse_time = time.time_ns()
+                        nurse_time = time.perf_counter_ns()
                         # open_nursery
                         async with create_task_group() as g:
                             # insert_data from the previous iteration
@@ -383,11 +386,11 @@ class DAQLogging:
                             # get
                             g.start_soon(self.update_dict_log, self.Daq, self.qualities)
                     else:
-                        nurse_time = time.time_ns()
+                        nurse_time = time.perf_counter_ns()
                         # Get the data
                         self.df = await self.Daq.get(self.qualities)
                         # Write the data from this iteration
-                    time2 = time.time_ns()
+                    time2 = time.perf_counter_ns()
                     rows = []
                     for dev in self.df:
                         rows.append(
@@ -407,23 +410,25 @@ class DAQLogging:
                             }
                         )
                     print(f"Process took {(time2 - time1) / 1e6} ms")
-                    time3 = time.time_ns()
+                    time3 = time.perf_counter_ns()
                     if not write_async:
                         await self.insert_data(
                             rows, conn
                         )  # This takes a little bit (~8 ms). I think we should run this in a nursery with the next .get() call. That means that we will have to wait until the next loop to submit the data from the previous iteration.
-                    time4 = time.time_ns()
+                    time4 = time.perf_counter_ns()
                     print(f"Insert took {(time4 - time3) / 1e6} ms")
                     print(
                         f"Time with nursery is {write_async}: {(time4 - nurse_time) / 1e6} ms"
                     )
                     reps += 1
-                    while (time.time_ns() - start) / 1e9 / (
+                    while (time.perf_counter_ns() - start) / 1e9 / (
                         1 / rate
                     ) >= 1.00 * reps + 1:
                         reps += 1
                         warnings.warn("Warning! Process takes too long!")
-            print(f"Total time: {(time.time_ns() - start) / 1e9} s with {reps} reps")
+            print(
+                f"Total time: {(time.perf_counter_ns() - start) / 1e9} s with {reps} reps"
+            )
 
     def start_logging(
         self, write_async: bool = False, duration: float = "", rate: float = ""

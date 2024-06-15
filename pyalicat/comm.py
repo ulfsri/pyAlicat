@@ -34,7 +34,7 @@ class CommDevice(ABC):
         Returns:
             ByteString: The serial communication.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def _write(self, command: str) -> None:
@@ -43,12 +43,12 @@ class CommDevice(ABC):
         Args:
             command (str): The serial communication.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def close(self):
         """Closes the serial communication."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def _readline(self) -> str | None:
@@ -57,7 +57,7 @@ class CommDevice(ABC):
         Returns:
             str: The serial communication.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def _write_readline(self, command: str) -> str | None:
@@ -69,7 +69,7 @@ class CommDevice(ABC):
         Returns:
             str: The serial communication.
         """
-        pass
+        raise NotImplementedError
 
 
 class SerialDevice(CommDevice):
@@ -115,6 +115,10 @@ class SerialDevice(CommDevice):
             # "rtscts": rtscts,
         }
         self.isOpen = False
+        if SerialStream is None:
+            raise ImportError(
+                "SerialStream could not be loaded. OS possibly not supported."
+            )
         self.ser_devc = SerialStream(**self.serial_setup)
 
     async def _read(self, len: int | None = None) -> ByteString | None:
