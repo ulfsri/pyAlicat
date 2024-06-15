@@ -120,8 +120,8 @@ class DAQ:
         return ret_dict
 
     async def get(
-        self, val: list[str] = "", id: list[str] = ""
-    ) -> dict[str, dict[str | float]]:
+        self, val: list[str] | None = None, id: list[str] | None = None
+    ) -> dict[str, dict[str, str | float]]:
         """Gets the data from the device.
 
         If id not specified, returns data from all devices.
@@ -129,7 +129,7 @@ class DAQ:
         Example:
             df = run(Daq.get, ["Mass_Flow", "Gas"], ['A', 'B'])
             df = run(Daq.get, ["Mass_Flow", "Gas"])
-            df = run(Daq.get, ["Mass_Flow", "Gas"], 'B')
+            df = run(Daq.get, ["Mass_Flow", "Gas"], ['B'])
             df = run(Daq.get, "Setpt")
 
         Args:
@@ -139,18 +139,15 @@ class DAQ:
         Returns:
             dict: The dictionary of devices with the data for each value.
         """
-        ret_dict = {}
-        if val and isinstance(val, str):
-            val = val.split()
+        ret_dict: dict[str, dict[str | float]] = {}
         if not id:
             async with create_task_group() as g:
                 for dev in self.devices:
                     g.start_soon(self.update_dict_get, ret_dict, dev, val)
-        if id and isinstance(id, str):
-            id = id.split()
-        async with create_task_group() as g:
-            for i in id:
-                g.start_soon(self.update_dict_get, ret_dict, i, val)
+        else:
+            async with create_task_group() as g:
+                for i in id:
+                    g.start_soon(self.update_dict_get, ret_dict, i, val)
         return ret_dict
 
     async def update_dict_set(
@@ -169,7 +166,9 @@ class DAQ:
         ret_dict.update({dev: await self.devices[dev].set(command)})
         return ret_dict
 
-    async def set(self, command: dict[str, str | float], id: list[str] = "") -> None:
+    async def set(
+        self, command: dict[str, str | float], id: list[str] | None = None
+    ) -> dict[str, dict[str, str | float]]:
         """Sets the data of the device.
 
         Example:
@@ -184,18 +183,15 @@ class DAQ:
         Returns:
             dict: The dictionary of devices with the data for each value.
         """
-        ret_dict = {}
-        if isinstance(command, str):
-            command = command.split()
+        ret_dict: dict[str, dict[str, str | float]] = {}
         if not id:
             async with create_task_group() as g:
                 for dev in self.devices:
                     g.start_soon(self.update_dict_set, ret_dict, dev, command)
-        if isinstance(id, str):
-            id = id.split()
-        async with create_task_group() as g:
-            for i in id:
-                g.start_soon(self.update_dict_set, ret_dict, i, command)
+        else:
+            async with create_task_group() as g:
+                for i in id:
+                    g.start_soon(self.update_dict_set, ret_dict, i, command)
         return ret_dict
 
 
@@ -204,7 +200,7 @@ class AsyncPG:
 
     def __init__(self, **kwargs):
         """Initializes the AsyncPG object."""
-        self.conn: asyncpg.Connection = None
+        self.conn: asyncpg.Connection | None = None
         self.kwargs = kwargs
 
     async def __aenter__(self):
@@ -224,7 +220,8 @@ class AsyncPG:
             exc: The exception.
             tb: The traceback.
         """
-        await self.conn.close()
+        if self.conn:
+            await self.conn.close()
         self.conn = None
 
 

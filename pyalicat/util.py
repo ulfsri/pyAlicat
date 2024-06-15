@@ -26,7 +26,7 @@ def gas_correction():
     pass
 
 
-async def update_dict_dev(devices, port) -> dict[str, dict[str, str | float]]:
+async def update_dict_dev(devices: dict[str, Device], port: str) -> dict[str, Device]:
     """Updates the dictionary with the new values.
 
     Args:
@@ -61,7 +61,7 @@ async def find_devices() -> dict[str, Device]:
     result = glob.glob("/dev/ttyUSB*")
 
     # Iterate through the output and check for Alicat devices
-    devices = {}
+    devices: dict[str, Device] = {}
     async with create_task_group() as g:
         for port in result:
             g.start_soon(update_dict_dev, devices, port)
@@ -114,15 +114,15 @@ async def diagnose():
     await Daq.add_device({"B": list(devs.keys())[1]})
     print(f"Add device B: {await Daq.dev_list()}")
     print(f"Get data (list): {await Daq.get([get_code1, get_code2])}")
-    temp = await Daq.get(set_code, "B")
+    temp = await Daq.get(set_code, ["B"])
     print(f"Get Data (id, no list): Temp = {temp}")
     await Daq.remove_device(["A"])
     print(f"Remove device A: {await Daq.dev_list()}")
     print(f"Set data (with id).")
-    await Daq.set({set_code: (temp["B"][set_code] + 1)}, "B")
+    await Daq.set({set_code: (temp["B"][f"{get_code1}_{set_code}"] + 1)}, ["B"])
     print(f"Get data: {await Daq.get([set_code])}")
     print(f"Set data (without id).")
-    await Daq.set({set_code: temp["B"][set_code]})
+    await Daq.set({set_code: temp["B"][f"{get_code1}_{set_code}"]})
     print(f"Get data: {await Daq.get([set_code])}")
     await Daq.add_device({"C": list(devs.keys())[0]})
     print(f"Add device C: {await Daq.dev_list()}")

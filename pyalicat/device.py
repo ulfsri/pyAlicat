@@ -228,7 +228,7 @@ class Device(ABC):
         Returns:
             dict[str, str]: Reports the gas and its code and names.
         """
-        LABELS = ["Unit_ID", "Gas_Code", "Gas", "Gas_Long"]
+        LABELS = ("Unit_ID", "Gas_Code", "Gas", "Gas_Long")
         if gas and self._vers and self._vers < 10.05:
             warnings.warn("Version earlier than 10v05, running Set Gas")
             return await self._set_gas(gas)
@@ -527,7 +527,7 @@ class Device(ABC):
         """
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
-        LABELS = ["Unit_ID", "Power-Up_Tare"]
+        LABELS = ("Unit_ID", "Power-Up_Tare")
         enable_str = "1" if enable else "0" if enable is not None else ""
         ret = await self._device._write_readline(f"{self._id}ZCP {enable_str}")
         ret = ret.split()
@@ -1258,7 +1258,7 @@ class Device(ABC):
             i += 1
         return resp
 
-    async def set(self, comm: dict[str, str]) -> dict[str, str]:
+    async def set(self, comm: dict[str, list[str | float]]) -> dict[str, str | float]:
         """Sets the values of measurements for the device.
 
         Args:
@@ -1267,7 +1267,7 @@ class Device(ABC):
         Returns:
             dict[str, str: response of setting function
         """
-        resp = {}
+        resp: dict[str, str | float] = {}
         for meas in list(comm.keys()):
             upper_meas = str(meas).upper()
             # Set gas - Param1 = gas: str = "", Param2 = save: bool = ""
@@ -1544,7 +1544,11 @@ class FlowController(FlowMeter):
         return dict(zip(LABELS, ret))
 
     async def loop_control_range(
-        self, var: str = "", unit: str = "", min: float = "", max: float = ""
+        self,
+        var: str | None = None,
+        unit: str | None = None,
+        min: float | None = None,
+        max: float | None = None,
     ) -> dict[str, str | float]:
         """Gets/Sets the control range of the statistic the setpoint controls.
 
@@ -1562,14 +1566,15 @@ class FlowController(FlowMeter):
         """
         if self._vers and self._vers < 9.00:
             raise VersionError("Version earlier than 9v00")
-        LABELS = ["Unit_ID", "Loop_Var", "Min", "Max", "Unit_Code", "Unit_Label"]
+        LABELS = ("Unit_ID", "Loop_Var", "Min", "Max", "Unit_Code", "Unit_Label")
         if self._vers and self._vers < 10.05:
-            warnings.warn("Version earlier than 10v05")
+            warnings.warn("Version earlier than 10v05, limits are not supported")
             LABELS = LABELS[:-2]
-            min = ""
-            max = ""
+            min = None
+            max = None
+        units_str = units[unit] if unit else ""
         ret = await self._device._write_readline(
-            f"{self._id}LR {statistics[var]} {units[unit]} {min} {max}"
+            f"{self._id}LR {statistics[var]} {units_str} {min or ""} {max or ""}"
         )
         ret = ret.split()
         ret[1] = next(
@@ -1579,7 +1584,7 @@ class FlowController(FlowMeter):
         return dict(zip(LABELS, ret))
 
     async def max_ramp_rate(
-        self, max: float = "", unit: str = ""
+        self, max: float | None = None, unit: str | None = None
     ) -> dict[str, str | float]:
         """Gets/Sets how fast controller moves to new setpoint.
 
@@ -1596,13 +1601,20 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 7.11:
             raise VersionError("Version earlier than 7v11")
         LABELS = ("Unit_ID", "Max_Ramp_Rate", "Unit_Code", "Time_Code", "Units")
-        ret = await self._device._write_readline(f"{self._id}SR {max} {units[unit]}")
+        if unit:
+            unit = units[unit]
+        ret = await self._device._write_readline(
+            f"{self._id}SR {max or ""} {unit or ""}"
+        )
         ret = ret.split()
         ret[1] = float(ret[1])
         return dict(zip(LABELS, ret))
 
     async def pdf_gains(
-        self, save: bool = "", p_gain: int = "", d_gain: int = ""
+        self,
+        save: bool | None = None,
+        p_gain: int | None = None,
+        d_gain: int | None = None,
     ) -> dict[str, str | float]:
         """Gets/Sets the proportional and intregral gains of the PD/PDF controller.
 
@@ -1622,17 +1634,20 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "P_Gain", "D_Gain")
-        if isinstance(save, bool):
-            save = "1" if save else "0"
+        save_str = "1" if save else "0" if save is not None else ""
         ret = await self._device._write_readline(
-            f"{self._id}LCGD {save} {p_gain} {d_gain}"
+            f"{self._id}LCGD {save_str} {p_gain or ""} {d_gain or ""}"
         )
         ret = ret.split()
         ret[1], ret[2] = int(ret[1]), int(ret[2])
         return dict(zip(LABELS, ret))
 
     async def pd2i_gains(
-        self, save: bool = "", p_gain: int = "", i_gain: int = "", d_gain: int = ""
+        self,
+        save: bool | None = None,
+        p_gain: int | None = None,
+        i_gain: int | None = None,
+        d_gain: int | None = None,
     ) -> dict[str, str | float]:
         """Gets/Sets the proportional, intregral, and derivative gains of the PD2I controller.
 
@@ -1654,16 +1669,15 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "P_Gain", "I_Gain", "D_Gain")
-        if isinstance(save, bool):
-            save = "1" if save else "0"
+        save_str = "1" if save else "0" if save is not None else ""
         ret = await self._device._write_readline(
-            f"{self._id}LCG {save} {p_gain} {i_gain} {d_gain}"
+            f"{self._id}LCG {save_str} {p_gain or ""} {i_gain or ""} {d_gain or ""}"
         )
         ret = ret.split()
         ret[1], ret[2], ret[3] = int(ret[1]), int(ret[2]), int(ret[3])
         return dict(zip(LABELS, ret))
 
-    async def power_up_setpoint(self, val: float = "") -> dict[str, str | float]:
+    async def power_up_setpoint(self, val: float) -> dict[str, str | float]:
         """Enables immediate setpoint on power-up.
 
         Example:
@@ -1688,7 +1702,7 @@ class FlowController(FlowMeter):
             df[index] = float(df[index])
         return dict(zip(self._df_format, df))
 
-    async def overpressure(self, limit: float = "") -> dict[str, str | float]:
+    async def overpressure(self, limit: float) -> dict[str, str | float]:
         """Sets the overpressure limit of the device. Flow is stopped if pressure exceeds.
 
         Example:
@@ -1714,7 +1728,11 @@ class FlowController(FlowMeter):
         return dict(zip(self._df_format, df))
 
     async def ramp(
-        self, up: bool = "", down: bool = "", zero: bool = "", power_up: bool = ""
+        self,
+        up: bool | None = None,
+        down: bool | None = None,
+        zero: bool | None = None,
+        power_up: bool | None = None,
     ) -> dict[str, str]:
         """Gets/Sets the ramp settings of the device.
 
@@ -1733,23 +1751,19 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "Ramp_Up", "Ramp_Down", "Zero_Ramp", "Power_Up_Ramp")
-        if isinstance(up, bool):
-            up = "1" if up else "0"
-        if isinstance(down, bool):
-            down = "1" if down else "0"
-        if isinstance(zero, bool):
-            zero = "1" if zero else "0"
-        if isinstance(power_up, bool):
-            power_up = "1" if power_up else "0"
+        up_str = "1" if up else "0" if up is not None else ""
+        down_str = "1" if down else "0" if down is not None else ""
+        zero_str = "1" if zero else "0" if zero is not None else ""
+        power_up_str = "1" if power_up else "0" if power_up is not None else ""
         ret = await self._device._write_readline(
-            f"{self._id}LSRC {up} {down} {zero} {power_up}"
+            f"{self._id}LSRC {up_str} {down_str} {zero_str} {power_up_str}"
         )
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret = ret.split()
         ret = [output_mapping.get(str(val), val) for val in ret]
         return dict(zip(LABELS, ret))
 
-    async def setpoint_source(self, mode: str = "") -> dict[str, str]:
+    async def setpoint_source(self, mode: str | None = None) -> dict[str, str]:
         """Gets/Sets how the setpoint is given to the controller.
 
         Example:
@@ -1771,7 +1785,7 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "Mode")
-        ret = await self._device._write_readline(f"{self._id}LSS {mode}")
+        ret = await self._device._write_readline(f"{self._id}LSS {mode or ""}")
         ret = ret.split()
         mapping = {
             "A": "Analog",
@@ -1782,7 +1796,10 @@ class FlowController(FlowMeter):
         return dict(zip(LABELS, ret))
 
     async def valve_offset(
-        self, save: bool = "", initial_offset: float = "", closed_offset: float = ""
+        self,
+        save: bool | None = None,
+        initial_offset: float | None = None,
+        closed_offset: float | None = None,
     ) -> dict[str, str | float]:
         """Gets/Sets how much power driven to valve when first opened or considered closed.
 
@@ -1800,16 +1817,15 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "Init_Offset_(%)", "Closed_Offset_(%)")
-        if isinstance(save, bool):
-            save = "0 1" if save else "0 0"
+        save_str = "0 1" if save else "0 0" if save is not None else ""
         ret = await self._device._write_readline(
-            f"{self._id}LCVO {save} {initial_offset} {closed_offset}"
+            f"{self._id}LCVO {save_str} {initial_offset or ""} {closed_offset or ""}"
         )
         ret = ret.split()
         ret[1], ret[2] = float(ret[1]), float(ret[2])
         return dict(zip(LABELS, ret))
 
-    async def zero_pressure_control(self, enable: bool = "") -> dict[str, str]:
+    async def zero_pressure_control(self, enable: bool | None = None) -> dict[str, str]:
         """Gets/Sets how controller reacts to 0 Pressure setpoint.
 
         Example:
@@ -1824,9 +1840,8 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 10.05:
             raise VersionError("Version earlier than 10v05")
         LABELS = ("Unit_ID", "Active_Ctrl")
-        if isinstance(enable, bool):
-            enable = "1" if enable else "0"
-        ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
+        enable_str = "1" if enable else "0" if enable is not None else ""
+        ret = await self._device._write_readline(f"{self._id}LCZA {enable_str}")
         ret = ret.split()
         output_mapping = {"1": "Enabled", "0": "Disabled"}
         ret[1] = output_mapping.get(str(ret[1]), ret[1])
@@ -1846,7 +1861,6 @@ class FlowController(FlowMeter):
         """
         if self._df_format is None:
             await self.get_df_format()
-        gas = gases.get(gas, "")
         ret = await self._device._write_readline(f"{self._id}C")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1869,7 +1883,6 @@ class FlowController(FlowMeter):
             raise VersionError("Version earlier than 4v37")
         if self._df_format is None:
             await self.get_df_format()
-        gas = gases.get(gas, "")
         ret = await self._device._write_readline(f"{self._id}E")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1892,7 +1905,6 @@ class FlowController(FlowMeter):
             raise VersionError("Version earlier than 5v07")
         if self._df_format is None:
             await self.get_df_format()
-        gas = gases.get(gas, "")
         ret = await self._device._write_readline(f"{self._id}HP")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1915,7 +1927,6 @@ class FlowController(FlowMeter):
             raise VersionError("Version earlier than 5v07")
         if self._df_format is None:
             await self.get_df_format()
-        gas = gases.get(gas, "")
         ret = await self._device._write_readline(f"{self._id}HC")
         df = ret.split()
         for index in [idx for idx, s in enumerate(self._df_ret) if "decimal" in s]:
@@ -1937,9 +1948,7 @@ class FlowController(FlowMeter):
         if self._vers and self._vers < 8.18:
             raise VersionError("Version earlier than 8v18")
         LABELS = ("Unit_ID", "Upstream_Valve", "Downstream_Valve", "Exhaust_Valve")
-        if isinstance(enable, bool):
-            enable = "1" if enable else "0"
-        ret = await self._device._write_readline(f"{self._id}LCZA {enable}")
+        ret = await self._device._write_readline(f"{self._id}VD")
         ret = ret.split()
         for i in range(len(ret)):
             if not i == 0:
@@ -1959,10 +1968,11 @@ class FlowController(FlowMeter):
         Returns:
             dict[str, str | float]: Response of setting function
         """
-        resp = {}
+        resp: dict[str, str | float] = {}
         for meas in list(comm.keys()):
-            if type(comm[meas]) is not list:
-                comm[meas] = [comm[meas]]
+            comm[meas] = (
+                [comm[meas]] if not isinstance(comm[meas], list) else comm[meas]
+            )
             while len(comm[meas]) < 2:
                 comm[meas].append("")
             upper_meas = str(meas).upper()
@@ -1970,10 +1980,10 @@ class FlowController(FlowMeter):
             if upper_meas == "GAS":
                 resp.update(await self.gas(str(comm[meas][0]), str(comm[meas][1])))
             # Set setpoint - Param1 = value: float = "", Param2 = unit: str = ""
-            elif upper_meas in ["SETPOINT", "SETPT"]:
+            elif upper_meas in ("SETPOINT", "SETPT"):
                 resp.update(await self.setpoint(str(comm[meas][0]), str(comm[meas][1])))
             # Set loop control variable - Param1 = statistic: str = ""
-            elif upper_meas in ["LOOP", "LOOP_CTRL"]:
+            elif upper_meas in ("LOOP", "LOOP_CTRL"):
                 resp.update(await self.loop_control_var(str(comm[meas][0])))
         return resp
 
@@ -1989,11 +1999,9 @@ class FlowController(FlowMeter):
         Returns:
             dict[str, str | float]: Dictionary of measurements
         """
-        resp = {}
+        resp: dict[str, str | float] = {}
         flag = 0
         reqs = []
-        if isinstance(measurements, str):
-            measurements = measurements.split()
         # Request
         if not measurements:
             measurements = ["@"]
