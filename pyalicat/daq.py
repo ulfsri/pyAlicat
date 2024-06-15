@@ -355,7 +355,7 @@ class DAQLogging:
                     # if stop_logging is in the queue, break out of the while loop
                     if comm == "Stop":
                         break
-                    elif isinstance(comm, list) and isinstance(comm[0], function):
+                    elif isinstance(comm, list) and callable(comm[0]):
                         df = await comm[0](*comm[1:])
                         self.qout.put(df)
                 # if not, continue logging
