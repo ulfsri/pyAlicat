@@ -57,7 +57,7 @@ pytest-html = "^4.1.1"
 pytest-cov = "^6.0.0"
 mkdocs-material = "^9.5.17"
 mkdocstrings = {extras = ["python"], version = "^0.27.0"}
-ruff = "^0.7.1"
+ruff = "^0.8.0"
 
 [tool.mypy]
 # https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
